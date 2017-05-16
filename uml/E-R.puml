@@ -1,0 +1,30 @@
+@startuml
+class Project {
+    string title
+    User author
+    string category
+    int goal
+    string currency
+    string country
+    timestamp created_at
+    timestamp launched_at
+    timestamp deadline
+    int pledged
+    int state
+    int backers_count
+    int news_update_count
+----
+    List<Users> backers()
+
+}
+
+
+class core{
+
+}
+
+class user{
+
+}
+
+@enduml
