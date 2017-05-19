@@ -1,6 +1,9 @@
-from .core import ReadyForObject, ReadyForConnection
+from .core import ReadyForObject, ReadyForConnection, FacebookGraphConnection
 from cached_property import cached_property
-from . import *
+from . import html_parser, user
+from attrdict import AttrDict
+from requests import request
+from secrets.settings import Settings
 
 
 class Project(ReadyForObject):
@@ -10,12 +13,12 @@ class Project(ReadyForObject):
             raise ValueError('one of argument must be supplied')
         elif project_key is not None:
             if '/' in project_key:
-                raise ValueError("\"project_url\" must be the *ending* of a vanity URL, not the entire URL!")
+                raise ValueError("\"project_key\" must be the *ending* of a vanity URL, not the entire URL!")
             self.project_key = project_key
         elif project_id is not None:
             self._id = project_id
         elif project_url is not None:
-            self.project_url = project_url
+            self.project_url = self.project_url
 
     @cached_property
     def __summary(self):
@@ -26,7 +29,8 @@ class Project(ReadyForObject):
             project_identifier = self._id
         elif self.project_url is not None:
             project_identifier = self.project_url.split('/').get(2)
-        return ReadyForConnection.call(object_name="projects", id=project_identifier, param=None, method="GET")
+        response = ReadyForConnection.call(object_name="projects", object_id=project_identifier, param=None, method="GET")
+        return html_parser.ProjectPageParser(response).parse()
 
     @cached_property
     def name(self):
@@ -127,8 +131,22 @@ class Project(ReadyForObject):
         url = self.__summary.user_profile_url
         return user.User(url)
 
+    @cached_property
+    def __facebook_graph(self):
+        """
+        
+        :return: Facebook_Like 
+        """
+        object_id = "{{domain}}/{{name}}".format(domain=Settings.readyfor_domain, name=self.name)
+        return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.8")).parse()
 
+    @property
+    def facebook_likes(self):
+        return self.__facebook_graph.share.share_count
 
+    @property
+    def facebook_comment_count(self):
+        return self.__facebook_graph.share.comment_count
 
     #----------プロパティをすべて書こう[amount, anticipative_amount, achivement_amount, degree, expired_at_year, funding_model, goal_amount, image, is_accombilish_report_published]
 

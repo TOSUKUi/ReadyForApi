@@ -6,7 +6,6 @@ e.g When object name is project and param is None, ProjectPageParser.
 import lxml.html
 import json
 import re
-from attrdict import AttrDict
 
 
 class ProjectPageParser(object):
@@ -19,24 +18,24 @@ class ProjectPageParser(object):
         return self.__project_json_getter()
 
     def __project_json_getter(self):
-        _body = "body"
         _site_container = "div[@class='Site-container']"
         _article = 'article'
         _container = "div[@class='Container']"
         _sidebar = "div[@class='Sidebar is-type0 u-fl_r']"
         _u_em = "div[@class='u-em u-fs_18 u-font_b u-align_c u-mt_20 u-mb_20']"
-
         html = lxml.html.fromstring(self.html_text)
         root = html.body.xpath('/*')[0]
-        project_json = root.body.\
+
+        project_json = \
+            root.\
+            body.\
             find(_site_container).\
             find(_article).\
             find(_container).\
             find(_sidebar).\
             find(_u_em).\
             find('div')
-        return AttrDict(project_json.attrib['data-react-props'])
-
+        return json.loads(str(project_json.attrib['data-react-props']))
 
     def __error_detection(self):
         html = lxml.html.fromstring(self.html_text)
@@ -48,13 +47,23 @@ class ProjectPageParser(object):
             return True
 
 
-
-
-
 class UserPageParser(object):
     pass
 
 
+class FaceBookLikeParser(object):
+
+    def __init__(self, text):
+        if text is None:
+            raise ValueError("one of arguments that must be supplied is not filled")
+        else:
+            self.text = text
+
+    def parse(self):
+        return json.loads(self.text)
+
+
 if __name__=="__main__":
-    f = open("tests/test_html/project_page.html", "r")
-    ProjectPageParser(f.read()).parse()
+    f = open("tests/test_resources/project_page.html", "r")
+    print(ProjectPageParser(f.read()).parse())
+

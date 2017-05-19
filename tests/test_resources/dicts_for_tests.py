@@ -1,4 +1,4 @@
-project_summary_hash = {
+project_summary_dict = {
     "project": {
         "amount": "13,265,000",
         "anticipative_amount": None,
@@ -55,4 +55,20 @@ project_summary_hash = {
         "watch_project_path": "/projects/solarboat/watch",
         "watchlists_count": 63
     }
+}
+
+
+facebook_likes_dict = {
+    "share": {
+        "comment_count": 0,
+        "share_count": 2384
+      },
+      "og_object": {
+        "id": "1157872341001510",
+        "description": "エジプト考古学研究者人生をかけた、最後にして最大の挑戦へ！ピラミッド建造の目的解明を目指して。鍵を握る「太陽の船」の完全修復と復原を目指します。 - クラウドファンディング Readyfor",
+        "title": "人生最後の挑戦！ピラミッドの謎解明の鍵を握る太陽の船復原へ！ - クラウドファンディング Readyfor (レディーフォー)",
+        "type": "website",
+        "updated_time": "2017-05-19T05:35:21+0000"
+      },
+      "id": "https://readyfor.jp/projects/solarboat/"
 }
