@@ -1,8 +1,6 @@
 from .core import ReadyForObject, ReadyForConnection, FacebookGraphConnection
 from cached_property import cached_property
 from . import html_parser, user
-from attrdict import AttrDict
-from requests import request
 from secrets.settings import Settings
 
 
@@ -15,48 +13,57 @@ class Project(ReadyForObject):
             if '/' in project_key:
                 raise ValueError("\"project_key\" must be the *ending* of a vanity URL, not the entire URL!")
             self.project_key = project_key
+            self.__id = None
+            self.project_url = None
         elif project_id is not None:
-            self._id = project_id
+            self.__id = project_id
+            self.project_url = None
+            self.project_key = None
         elif project_url is not None:
+            self.__id = None
             self.project_url = self.project_url
+            self.project_key = None
 
     @cached_property
-    def __summary(self):
-        project_identifier = ""
+    def __project_identifier(self):
         if self.project_key is not None:
-            project_identifier = self.project_key
-        elif self._id is not None:
-            project_identifier = self._id
+            return self.project_key
+        elif self.__id is not None:
+            return self.__id
         elif self.project_url is not None:
-            project_identifier = self.project_url.split('/').get(2)
-        response = ReadyForConnection.call(object_name="projects", object_id=project_identifier, param=None, method="GET")
-        return html_parser.ProjectPageParser(response).parse()
+            return self.project_url.split('/').get(2)
+
+    @cached_property
+    def summary(self):
+        response = ReadyForConnection.call(object_name="projects", object_id=self.__project_identifier, param=None, method="GET")
+        return html_parser.ProjectPageParser(response.text).parse()
+
 
     @cached_property
     def name(self):
         if self.project_key is not None:
             return self.project_key
         else:
-            return self.__summary.keyword
+            return self.summary.keyword
 
     @cached_property
-    def id(self):
-        if self._id is None:
-            return self.__summary.id
+    def _id(self):
+        if self.__id is None:
+            return self.summary.id
         else:
-            return self._id
+            return self.__id
 
-    @property
+    @cached_property
     def amount(self):
-        return self.__summary.amount
+        return self.summary.amount
 
     @property
     def anticipative_amount(self):
-        return self.__summary.anticipative_amount
+        return self.summary.anticipative_amount
 
     @property
     def achievement_amount(self):
-        return self.__summary.achievement_amount
+        return self.summary.achievement_amount
 
     @property
     def degree(self):
@@ -64,7 +71,7 @@ class Project(ReadyForObject):
         :return: end time of project
          :rtype: Datetime
         """
-        return self.__summary.degree
+        return self.summary.degree
 
     @property
     def expired_at_year(self):
@@ -73,7 +80,7 @@ class Project(ReadyForObject):
         :return: the year when project end.
         :rtype: string
         """
-        return self.__summary.expired_at_year
+        return self.summary.expired_at_year
 
     @property
     def funding_percent(self):
@@ -81,55 +88,55 @@ class Project(ReadyForObject):
 
     @property
     def goal_amount(self):
-        return self.__summary.goal_amount
+        return self.summary.goal_amount
 
     @property
     def image(self):
-        return self.__summary.image
+        return self.summary.image
 
     @property
     def is_accomplish_report_republished(self):
-        return self.__summary.is_accomplish_report_republished
+        return self.summary.is_accomplish_report_republished
 
     @cached_property
     def is_expired(self):
-        return True if self.__summary.is_expired is "終了日" else False
+        return True if self.summary.is_expired is "終了日" else False
 
     @property
     def is_matching_complete(self):
-        return self.__summary.is_matching_complete
+        return self.summary.is_matching_complete
 
     @property
     def keep_it_all(self):
-        return self.__summary.keep_it_all
+        return self.summary.keep_it_all
 
     @property
     def label_type(self):
-        return self.__summary.label_type
+        return self.summary.label_type
 
     @property
     def matching(self):
-        return self.__summary.matching
+        return self.summary.matching
 
     @property
     def favorite_count(self):
-        return self.__summary.watchilist_count
+        return self.summary.watchilist_count
 
     @property
     def project_type(self):
         """
         :return: project type. e.g. "charity" , "normal" 
         """
-        return self.__summary.project_type
+        return self.summary.project_type
 
     @property
     def tags(self):
-        return self.__summary.tags
+        return self.summary.tags
 
     @cached_property
     def author(self):
-        url = self.__summary.user_profile_url
-        return user.User(url)
+        url = self.summary.user_profile_url
+        return user.User(user_url=url)
 
     @cached_property
     def __facebook_graph(self):
@@ -148,6 +155,17 @@ class Project(ReadyForObject):
     def facebook_comment_count(self):
         return self.__facebook_graph.share.comment_count
 
-    #----------プロパティをすべて書こう[amount, anticipative_amount, achivement_amount, degree, expired_at_year, funding_model, goal_amount, image, is_accombilish_report_published]
+    @property
+    def category(self):
+        pass
+
+    @cached_property
+    def __comments_summary(self):
+        response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier, sub_object="comment")
+        return html_parser.ProjectCommentsPageParser(response.text).parse()
+
+    @property
+    def backers(self):
+        return self.__comments_summary.backers
 
 

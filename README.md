@@ -1,4 +1,5 @@
 # ReadyFor-API
+[![Build Status](https://travis-ci.org/TOSUKUi/readyfor-api.svg?branch=master)](https://travis-ci.org/TOSUKUi/readyfor-api)
 An object-oriented python 3.5+ library for scraping the ReadyFor Web site.
 
 ## Whats this?
@@ -29,6 +30,8 @@ beehive
 [<User "たむら ゆうや" (283668)>, ...., <User "川畑真央" (277481)>]
 # this data was gotten at 2017-05-11 09:36:20 JST
 ```
+
+
 
 ## LICENSE
 [MIT](LICENSE)

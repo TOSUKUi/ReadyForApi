@@ -16,11 +16,13 @@ class User(ReadyForObject):
 
     @cached_property
     def __from_user_page(self):
+        user_identifier = ""
         if self._id is not None:
             user_identifier = self._id
         elif self.user_url is not None:
             user_identifier = self.user_url.split("/").get(2)
-        return ReadyForConnection.call(object_name="users", id=user_id, param=None, method="GET")
+        response = ReadyForConnection.call(object_name="users", object_id=user_identifier, param=None, method="GET")
+        return html_parser.UserPageParser(response.read()).parse()
 
     @property
     def name(self):
