@@ -28,3 +28,8 @@ class AccessException(RequestException):
     An error caused by page access error, like access denied by readyfor.
     """
     pass
+
+class PageAccessException(AccessException):
+    """
+    An error caused by 4** error, for example, page not found.
+    """

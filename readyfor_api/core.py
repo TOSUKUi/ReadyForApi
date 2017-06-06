@@ -5,12 +5,12 @@ import time
 from inflector import Inflector
 
 class ReadyForConnection(object):
-    queried_at = None
+    queried_at = datetime.now()
     inflicter = Inflector()
     QUERY_DOMAIN = "http://readyfor.jp"
 
     @classmethod
-    def call(cls, object_name, object_id, sub_object, method="GET", **kwargs):
+    def call(cls, object_name=None, object_id=None, sub_object=None, method="GET", test=None, **kwargs):
 
         """
         Call an A
@@ -29,8 +29,11 @@ class ReadyForConnection(object):
         try:
             # User double curly-braces to tell python
             objects_name = cls.inflicter.pluralize(object_name)
-            query = "{domain}/{{objects_name}}/{{id}}/{{sub_object}}".\
-                format(domain=cls.QUERY_DOMAIN, objects_name=objects_name, id=object_id, sub_object=sub_object)
+            query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=cls.QUERY_DOMAIN, objects_name=objects_name, id=object_id, sub_object=sub_object)
+            if sub_object is None:
+                query = "{domain}/{objects_name}/{id}".format(domain=cls.QUERY_DOMAIN,
+                                                              objects_name=objects_name,
+                                                              id=object_id)
             cls.queried_at = datetime.now()
             return request(method=method, url=query, params=kwargs)
         except:
@@ -77,6 +80,7 @@ class ReadyForResponse(object):
             format(object_name=object_name, sub_object=sub_object)
         parser_class_camel = self.inflicter.camelize(word=parser_class_snake)
         self.str_to_cls(parser_class_camel)(father_html)
+
 
     @classmethod
     def str_to_cls(cls, class_name):
