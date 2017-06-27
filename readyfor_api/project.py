@@ -172,4 +172,5 @@ class Project(ReadyForObject):
 
     @cached_property
     def backers(self):
+        print(self.__comments_summary)
         return [user.User(user_id=backer.backer_id, backed_at=backer.backed_at) for backer in self.__comments_summary.backers]

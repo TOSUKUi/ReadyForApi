@@ -78,7 +78,7 @@ class ProjectPageParser(Parser):
 class ProjectCommentsPageParser(Parser):
 
     def page_parser(self):
-        return {"backers": self.__comment_getter()}
+        return {"backers": self.__comment_getter(), "max_page": self.__max_page()}
 
     def __comment_getter(self):
         comments_pattern = r'<div class="Cheer-comment"><div class="Cheer-comment__image"><a href="/users/([0-9]*)"'
@@ -87,6 +87,10 @@ class ProjectCommentsPageParser(Parser):
         backed_at_matches = re.finditer(backed_at_pattern, self.html_text)
         return [{"backer_id": comment.groups()[0], "backed_at": backed_at.groups()[0]} for comment, backed_at in zip(comments_matches, backed_at_matches)]
 
+    def __max_page(self):
+        page_pattern = r'<span class="page">\n<a href=".*">(¥d)</a>\n</span>'
+        page_matches = re.finditer(page_pattern, self.html_text)
+        return [page.groups()[0] for page in page_matches]
 
 class UserPageParser(Parser):
 
