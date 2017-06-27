@@ -21,7 +21,7 @@ class Project(ReadyForObject):
             self.project_key = None
         elif project_url is not None:
             self.__id = None
-            self.project_url = self.project_url
+            self.project_url = project_url
             self.project_key = None
 
     @cached_property
@@ -31,7 +31,7 @@ class Project(ReadyForObject):
         elif self.__id is not None:
             return self.__id
         elif self.project_url is not None:
-            return self.project_url.split('/').get(2)
+            return self.project_url.split('/')[4]
 
     @cached_property
     def summary(self):
@@ -52,6 +52,13 @@ class Project(ReadyForObject):
             return self.summary.id
         else:
             return self.__id
+
+    @cached_property
+    def url(self):
+        if self.project_url is not None:
+            return self.project_url
+        else:
+            return "{domain}/{key}".format(domain=Settings.project_domain, key=self.name)
 
     @cached_property
     def amount(self):
@@ -120,7 +127,7 @@ class Project(ReadyForObject):
 
     @property
     def favorite_count(self):
-        return self.summary.watchilist_count
+        return self.summary.watchilists_count
 
     @property
     def project_type(self):
@@ -135,16 +142,15 @@ class Project(ReadyForObject):
 
     @cached_property
     def author(self):
-        url = self.summary.user_profile_url
-        return user.User(user_url=url)
+        print(self.summary.user_profile_url)
+        return user.User(user_url=self.summary.user_profile_url)
 
     @cached_property
     def __facebook_graph(self):
         """
-        
         :return: Facebook_Like 
         """
-        object_id = "{{domain}}/{{name}}".format(domain=Settings.readyfor_domain, name=self.name)
+        object_id = "{domain}/{object}/{name}".format(domain=Settings.readyfor_domain, object=Settings.project_domain, name=self.name)
         return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.8")).parse()
 
     @property
@@ -161,11 +167,9 @@ class Project(ReadyForObject):
 
     @cached_property
     def __comments_summary(self):
-        response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier, sub_object="comment")
+        response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier, sub_object="comments")
         return html_parser.ProjectCommentsPageParser(response.text).parse()
 
-    @property
+    @cached_property
     def backers(self):
-        return self.__comments_summary.backers
-
-
+        return [user.User(user_id=backer.backer_id, backed_at=backer.backed_at) for backer in self.__comments_summary.backers]

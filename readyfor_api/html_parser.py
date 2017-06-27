@@ -78,20 +78,96 @@ class ProjectPageParser(Parser):
 class ProjectCommentsPageParser(Parser):
 
     def page_parser(self):
-        return {"backers": list(map(lambda x: int(x.split("/")[2]), self.__comment_getter()))}
+        return {"backers": self.__comment_getter()}
 
     def __comment_getter(self):
-        pattern = r'<div class="Cheer-comment"><div class="Cheer-comment__image"><a href="(/users/[0-9]*)"'
-        matches = re.finditer(pattern, self.html_text)
-        return [match.groups()[0] for match in matches]
+        comments_pattern = r'<div class="Cheer-comment"><div class="Cheer-comment__image"><a href="/users/([0-9]*)"'
+        comments_matches = re.finditer(comments_pattern, self.html_text)
+        backed_at_pattern = r'<time class="Cheer-comment__status__date" pubdate="(.*)">.*</time></div><p class="Cheer-comment__text">'
+        backed_at_matches = re.finditer(backed_at_pattern, self.html_text)
+        return [{"backer_id": comment.groups()[0], "backed_at": backed_at.groups()[0]} for comment, backed_at in zip(comments_matches, backed_at_matches)]
 
 
 class UserPageParser(Parser):
-    pass
+
+    def page_parser(self):
+        user_dict = {
+            "backed_projects":  self.__backed_projects_parser(),
+            "created_projects": self.__created_projects_parser(),
+        }
+        user_dict.update(self.__profile_parser())
+        return user_dict
+
+    def __profile_parser(self):
+        name_pattern = r'<div class="Profile__body__header__name">(.*)</div><div class="Profile__body__header__SNS-links">'
+        biography_pattern = r'<div class="Profile__body__desc__main"><p>(.*)</p></div><div class="Profile__body__desc__more">'
+        sns_pattern = r'<div class="Profile__body__header__SNS-links">(.*)</div></div><div class="Profile__body__desc">'
+        return {
+            "name":      self.__regexp_match_group(name_pattern),
+            "biography": self.__regexp_match_group(biography_pattern),
+            "sns_links": self.__regexp_match_group(sns_pattern),
+        }
+
+    def __backed_projects_parser(self):
+        _site_container = "div[@class='Site-container']"
+        _profile_container = 'div[@class="Profile-container"]'
+        _tab_pan = 'div[@class="Tab-pan"]'
+        _tab_contents = 'div[@class="Tab-contents"]'
+        _tab_contents__item = 'div[@class="Tab-contents__item"]'
+        _article = "article"
+        html = lxml.html.fromstring(self.html_text)
+        root = html.body.xpath('/*')[0]
+        try:
+            backed_projects = \
+                root.\
+                body.\
+                find(_site_container).\
+                find(_profile_container).\
+                find(_tab_pan).\
+                find(_tab_contents).\
+                findall(_tab_contents__item)
+        except AttributeError:
+            return []
+        return [backed_project.find(_article).find("a").attrib["href"].split("/")[2] for backed_project in backed_projects]
+
+    def __created_projects_parser(self):
+        _site_container = "div[@class='Site-container']"
+        _profile_container = 'div[@class="Profile-container"]'
+        _tab_pan = 'div[@class="Tab-pan"]'
+        _tab_contents = 'div[@class="Tab-contents active"]'
+        _tab_contents__item = 'div[@class="Tab-contents__item"]'
+        _article = "article"
+        html = lxml.html.fromstring(self.html_text)
+        root = html.body.xpath('/*')[0]
+        try:
+            backed_projects = \
+                root. \
+                body. \
+                find(_site_container). \
+                find(_profile_container). \
+                find(_tab_pan). \
+                find(_tab_contents). \
+                findall(_tab_contents__item)
+        except AttributeError:
+            return []
+        return [backed_project.find(_article).find("a").attrib["href"].split("/")[2] for backed_project in backed_projects]
+
+    def __regexp_match_group(self, pattern):
+        matches = re.finditer(pattern, self.html_text)
+        for match in matches:
+            return match.groups()[0]
 
 
 class FaceBookLikeParser(object):
-    pass
+
+    def __init__(self, api_response):
+        self.api_response = api_response
+
+    def parse(self):
+        return AttrDict(self.__page_parser())
+
+    def __page_parser(self):
+        return json.loads(self.api_response.text)
 
 
 if __name__ == "__main__":

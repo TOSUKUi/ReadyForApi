@@ -21,17 +21,17 @@ class TestProjectCommentsPageParserMethods(unittest.TestCase):
         test_html = open("tests/test_resources/404error.html", "r").read()
         self.assertRaises(
             errors.PageAccessException,
-            ProjectCommentsPageParser, test_html
+            ProjectCommentsPageParser,
+            test_html
         )
-
 
 
 class TestFacebookLikesParserMethods(unittest.TestCase):
 
     test_facebook = open("tests/test_resources/facebook_likes.json", "r")
-    test_facebook.close()
-    #def test_parse(self):
-    #    self.assertEqual(FaceBookLikeParser(self.test_facebook.read()).parse(), pps.facebook_likes_dict)
+
+    def test_parse(self):
+        self.assertEqual(FaceBookLikeParser(self.test_facebook.read()).parse(), AttrDict(pps.facebook_likes_dict))
 
 if __name__ == '__main__':
     unittest.main()
