@@ -6,7 +6,6 @@ for easy to use.
 import lxml.html
 import json
 import re
-from attrdict import AttrDict
 from . import errors
 
 
