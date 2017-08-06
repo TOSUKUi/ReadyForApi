@@ -39,7 +39,7 @@ class User(ReadyForObject):
 
     @property
     def name(self):
-        return self.from_user_page.name
+        return self.from_user_page["name"]
 
     @property
     def url(self):
@@ -54,19 +54,19 @@ class User(ReadyForObject):
 
     @property
     def biography(self):
-        return self.from_user_page.biography
+        return self.from_user_page["biography"]
 
     @cached_property
     def backed_projects(self):
-        return [project.Project(project_key=project_key) for project_key in self.from_user_page.backed_projects]
+        return [project.Project(project_key=project_key) for project_key in self.from_user_page["backed_projects"]]
 
     @cached_property
     def created_projects(self):
-        return [project.Project(project_key=project_key) for project_key in self.from_user_page.created_projects]
+        return [project.Project(project_key=project_key) for project_key in self.from_user_page["created_projects"]]
 
     @property
     def sns_links(self):
-        return self.from_user_page.sns_links
+        return self.from_user_page["sns_links"]
 
 
 

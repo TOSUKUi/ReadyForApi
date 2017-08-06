@@ -35,7 +35,7 @@ class Parser(object):
         :rtype: AttrDict
         """
         page_dict = self.page_parser()
-        return AttrDict(page_dict)
+        return page_dict
 
     def page_parser(self):
         pass
@@ -45,7 +45,7 @@ class ProjectPageParser(Parser):
 
     def page_parser(self):
         project_dict = self.__project_json_getter()
-        project_dict["project"].update({"news_update_count": self.__project_news_count_parser()})
+        project_dict["project"].update(self.__project_tab_parser())
         return project_dict["project"]
 
     def __project_json_getter(self):
@@ -68,11 +68,38 @@ class ProjectPageParser(Parser):
             find('div')
         return json.loads(str(project_json.attrib['data-react-props']))
 
-    def __project_news_count_parser(self):
-        pattern = r'<span class="Tab__menu-icon Icon-num">(.*)</span>'
-        matches = re.finditer(pattern, self.html_text)
-        for match in matches:
-            return int(match.groups()[0])
+    def __project_tab_parser(self):
+        html = lxml.html.fromstring(self.html_text)
+        root = html.body.xpath('/*')[0]
+        _site_container = "div[@class='Site-container']"
+        _article = 'article'
+        _project_visual_container = "div[@class='Project-visual Container u-mb_20 u-clrfix']"
+        _tab_wrapper = 'div[@class="tab-wrapper"]'
+        _tab_menu = 'div[@class="Tab__menu tabnav-tabs"]'
+        _tabnav_tabs = 'nav[@class="tabnav-tabs"]'
+        tab_menus = \
+            root. \
+            body. \
+            find(_site_container).\
+            find(_article). \
+            find(_project_visual_container).\
+            find(_tab_wrapper).\
+            find(_tab_menu).\
+            find(_tabnav_tabs).\
+            findall("a")
+
+        tab_items = {}
+        for tab_menu in tab_menus:
+            if tab_menu.find("span[@class='']").text == "新着情報":
+                update_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
+                tab_items.update({"news_update_count": update_count})
+            elif tab_menu.find("span[@class='']").text == "応援コメント":
+                comments_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
+                tab_items.update({"comments_count": comments_count})
+        return tab_items
+
+    def __project_comments_count_parser(self):
+        pattern = r''
 
 
 class ProjectCommentsPageParser(Parser):
@@ -88,9 +115,11 @@ class ProjectCommentsPageParser(Parser):
         return [{"backer_id": comment.groups()[0], "backed_at": backed_at.groups()[0]} for comment, backed_at in zip(comments_matches, backed_at_matches)]
 
     def __max_page(self):
-        page_pattern = r'<span class="page">\n<a href=".*">(¥d)</a>\n</span>'
+        page_pattern = r'<span class="page">\n.*<a href=".*">(\d+)</a>\n</span>'
         page_matches = re.finditer(page_pattern, self.html_text)
-        return [page.groups()[0] for page in page_matches]
+        return [page.groups()[0] for page in page_matches][-1]
+
+
 
 class UserPageParser(Parser):
 
@@ -115,21 +144,34 @@ class UserPageParser(Parser):
     def __backed_projects_parser(self):
         _site_container = "div[@class='Site-container']"
         _profile_container = 'div[@class="Profile-container"]'
+        _ul_tab_menu = "ul[@class='Tab-menu']"
+        _li_active = "li[@class='active']"
         _tab_pan = 'div[@class="Tab-pan"]'
         _tab_contents = 'div[@class="Tab-contents"]'
+        _tab_contents_active = 'div[@class="Tab-contents active"]'
         _tab_contents__item = 'div[@class="Tab-contents__item"]'
         _article = "article"
         html = lxml.html.fromstring(self.html_text)
         root = html.body.xpath('/*')[0]
         try:
-            backed_projects = \
+            backed_projects = None
+            projects_profile = \
                 root.\
                 body.\
                 find(_site_container).\
-                find(_profile_container).\
-                find(_tab_pan).\
-                find(_tab_contents).\
-                findall(_tab_contents__item)
+                find(_profile_container)
+            if projects_profile.find(_ul_tab_menu).find(_li_active).text == "支援したプロジェクト":
+                backed_projects = \
+                    projects_profile.\
+                    find(_tab_pan).\
+                    find(_tab_contents_active).\
+                    findall(_tab_contents__item)
+            else:
+                backed_projects = \
+                    projects_profile. \
+                    find(_tab_pan). \
+                    find(_tab_contents). \
+                    findall(_tab_contents__item)
         except AttributeError:
             return []
         return [backed_project.find(_article).find("a").attrib["href"].split("/")[2] for backed_project in backed_projects]
@@ -137,24 +179,37 @@ class UserPageParser(Parser):
     def __created_projects_parser(self):
         _site_container = "div[@class='Site-container']"
         _profile_container = 'div[@class="Profile-container"]'
+        _ul_tab_menu = "ul[@class='Tab-menu']"
+        _li_active = "li[@class='active']"
         _tab_pan = 'div[@class="Tab-pan"]'
-        _tab_contents = 'div[@class="Tab-contents active"]'
+        _tab_contents = 'div[@class="Tab-contents"]'
+        _tab_contents_active = 'div[@class="Tab-contents active"]'
         _tab_contents__item = 'div[@class="Tab-contents__item"]'
         _article = "article"
         html = lxml.html.fromstring(self.html_text)
         root = html.body.xpath('/*')[0]
         try:
-            backed_projects = \
+            created_projects = None
+            projects_profile = \
                 root. \
                 body. \
                 find(_site_container). \
-                find(_profile_container). \
-                find(_tab_pan). \
-                find(_tab_contents). \
-                findall(_tab_contents__item)
+                find(_profile_container)
+            if projects_profile.find(_ul_tab_menu).find(_li_active).text == "公開したプロジェクト":
+                created_projects = \
+                    projects_profile. \
+                    find(_tab_pan). \
+                    find(_tab_contents_active). \
+                    findall(_tab_contents__item)
+            else:
+                created_projects = \
+                    projects_profile. \
+                    find(_tab_pan). \
+                    find(_tab_contents). \
+                    findall(_tab_contents__item)
         except AttributeError:
             return []
-        return [backed_project.find(_article).find("a").attrib["href"].split("/")[2] for backed_project in backed_projects]
+        return [created_project.find(_article).find("a").attrib["href"].split("/")[2] for created_project in created_projects]
 
     def __regexp_match_group(self, pattern):
         matches = re.finditer(pattern, self.html_text)
@@ -168,10 +223,10 @@ class FaceBookLikeParser(object):
         self.api_response = api_response
 
     def parse(self):
-        return AttrDict(self.__page_parser())
+        return self.__page_parser()
 
     def __page_parser(self):
-        return json.loads(self.api_response.text)
+        return json.loads(self.api_response)
 
 
 if __name__ == "__main__":

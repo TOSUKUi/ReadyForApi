@@ -38,18 +38,17 @@ class Project(ReadyForObject):
         response = ReadyForConnection.call(object_name="projects", object_id=self.__project_identifier, param=None, method="GET")
         return html_parser.ProjectPageParser(response.text).parse()
 
-
     @cached_property
     def name(self):
         if self.project_key is not None:
             return self.project_key
         else:
-            return self.summary.keyword
+            return self.summary["keyword"]
 
     @cached_property
     def _id(self):
         if self.__id is None:
-            return self.summary.id
+            return self.summary["id"]
         else:
             return self.__id
 
@@ -62,15 +61,34 @@ class Project(ReadyForObject):
 
     @cached_property
     def amount(self):
-        return self.summary.amount
+        """
+        :return: amount of money
+        """
+        return self.summary["amount"]
 
     @property
     def anticipative_amount(self):
-        return self.summary.anticipative_amount
+        """
+        It is past goal amount of this project but not appear.
+        :return: None
+        """
+        return self.summary["anticipative_amount"]
+
+    @property
+    def news_update_count(self):
+        """
+        新着情報の更新回数
+        :return: 新着情報の更新回数 
+        """
+        return self.summary["news_update_count"]
 
     @property
     def achievement_amount(self):
-        return self.summary.achievement_amount
+        """
+        Goal amount of past it appears when this project is setten 2nd goal.
+        :return: goal amount of past.
+        """
+        return self.summary["achievement_amount"]
 
     @property
     def degree(self):
@@ -78,7 +96,7 @@ class Project(ReadyForObject):
         :return: end time of project
          :rtype: Datetime
         """
-        return self.summary.degree
+        return self.summary["degree"]
 
     @property
     def expired_at_year(self):
@@ -87,63 +105,62 @@ class Project(ReadyForObject):
         :return: the year when project end.
         :rtype: string
         """
-        return self.summary.expired_at_year
+        return self.summary["expired_at_year"] if "expired_at_year" in self.summary else None
 
     @property
     def funding_percent(self):
-        return self.amount/self.goal_amount
+        return float(self.amount)/float(self.goal_amount)*100
 
     @property
     def goal_amount(self):
-        return self.summary.goal_amount
+        return self.summary["goal_amount"]
 
     @property
     def image(self):
-        return self.summary.image
+        return self.summary["image"]
 
     @property
     def is_accomplish_report_republished(self):
-        return self.summary.is_accomplish_report_republished
+        return self.summary["is_accomplish_report_republished"]
 
     @cached_property
     def is_expired(self):
-        return True if self.summary.is_expired is "終了日" else False
+        return True if self.summary["is_expired"] is "終了日" else False
 
     @property
     def is_matching_complete(self):
-        return self.summary.is_matching_complete
+        return self.summary["is_matching_complete"]
 
     @property
     def keep_it_all(self):
-        return self.summary.keep_it_all
+        return self.summary["keep_it_all"]
 
     @property
     def label_type(self):
-        return self.summary.label_type
+        return self.summary["label_type"]
 
     @property
     def matching(self):
-        return self.summary.matching
+        return self.summary["matching"]
 
     @property
     def favorite_count(self):
-        return self.summary.watchilists_count
+        return self.summary["watchlists_count"]
 
     @property
     def project_type(self):
         """
         :return: project type. e.g. "charity" , "normal" 
         """
-        return self.summary.project_type
+        return self.summary["project_type"]
 
     @property
     def tags(self):
-        return self.summary.tags
+        return self.summary["tags"]
 
     @cached_property
     def author(self):
-        print(self.summary.user_profile_url)
-        return user.User(user_url=self.summary.user_profile_url)
+        return user.User(user_url=self.summary["user_profile_url"])
 
     @cached_property
     def __facebook_graph(self):
@@ -155,22 +172,34 @@ class Project(ReadyForObject):
 
     @property
     def facebook_likes(self):
-        return self.__facebook_graph.share.share_count
+        return self.__facebook_graph["share"]["share_count"]
 
     @property
     def facebook_comment_count(self):
-        return self.__facebook_graph.share.comment_count
+        return self.__facebook_graph["share"]["comment_count"]
 
     @property
     def category(self):
         pass
 
     @cached_property
-    def __comments_summary(self):
+    def comments_summary(self):
         response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier, sub_object="comments")
-        return html_parser.ProjectCommentsPageParser(response.text).parse()
+        comments_summary = html_parser.ProjectCommentsPageParser(response.text).parse()
+        print(comments_summary)
+        print("max_page = " + comments_summary["max_page"])
+        for page in range(2, int(comments_summary["max_page"]) + 1):
+            print("page = {page}".format(page=page))
+            response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier,
+                                                           sub_object="comments", page=page)
+            comments_summary["backers"].extend(html_parser.ProjectCommentsPageParser(response.text).parse()["backers"])
+            print(len(comments_summary["backers"]))
+        return comments_summary
 
     @cached_property
     def backers(self):
-        print(self.__comments_summary)
-        return [user.User(user_id=backer.backer_id, backed_at=backer.backed_at) for backer in self.__comments_summary.backers]
+        return [user.User(user_id=backer["backer_id"], backed_at=backer["backed_at"]) for backer in self.comments_summary["backers"]]
+
+    @property
+    def comments_count(self):
+        return self.summary["comments_count"]
