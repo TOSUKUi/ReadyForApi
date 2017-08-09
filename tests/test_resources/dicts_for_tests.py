@@ -53,7 +53,9 @@ project_summary_dict = {
         "user_twitter_link_url": None,
         "user_watched": False,
         "watch_project_path": "/projects/solarboat/watch",
-        "watchlists_count": 63
+        "watchlists_count": 63,
+        "news_update_count": '7',
+        'comments_count': '200',
     }
 }
 
@@ -71,4 +73,16 @@ facebook_likes_dict = {
         "updated_time": "2017-05-19T05:35:21+0000"
       },
       "id": "https://readyfor.jp/projects/solarboat/"
+}
+
+backers = {
+    "backers": [
+        {'backer_id': '292568', 'backed_at': "2017-05-29"},
+        {'backer_id': '292579', 'backed_at': "2017-05-28"},
+        {'backer_id': '224007', 'backed_at': "2017-05-28"},
+        {'backer_id': '262240', 'backed_at': "2017-05-23"},
+        {'backer_id': '257498', 'backed_at': "2017-05-28"},
+        {'backer_id': '292556', 'backed_at': "2017-05-28"},
+    ],
+    "max_page": '3'
 }
