@@ -67,7 +67,3 @@ class User(ReadyForObject):
     @property
     def sns_links(self):
         return self.from_user_page["sns_links"]
-
-
-
-

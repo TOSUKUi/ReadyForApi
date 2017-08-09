@@ -54,7 +54,8 @@ project_summary_dict = {
         "user_watched": False,
         "watch_project_path": "/projects/solarboat/watch",
         "watchlists_count": 63,
-        "news_update_count": 7
+        "news_update_count": '7',
+        'comments_count': '200',
     }
 }
 

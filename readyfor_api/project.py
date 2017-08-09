@@ -80,7 +80,7 @@ class Project(ReadyForObject):
         新着情報の更新回数
         :return: 新着情報の更新回数 
         """
-        return self.summary["news_update_count"]
+        return int(self.summary["news_update_count"])
 
     @property
     def achievement_amount(self):

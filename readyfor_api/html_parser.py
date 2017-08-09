@@ -46,6 +46,7 @@ class ProjectPageParser(Parser):
     def page_parser(self):
         project_dict = self.__project_json_getter()
         project_dict["project"].update(self.__project_tab_parser())
+        print(project_dict)
         return project_dict["project"]
 
     def __project_json_getter(self):
