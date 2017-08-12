@@ -6,7 +6,6 @@ for easy to use.
 import lxml.html
 import json
 import re
-from attrdict import AttrDict
 from . import errors
 
 
@@ -226,7 +225,7 @@ class FaceBookLikeParser(object):
         return self.__page_parser()
 
     def __page_parser(self):
-        return json.loads(self.api_response)
+        return json.loads(self.api_response.text)
 
 
 if __name__ == "__main__":
