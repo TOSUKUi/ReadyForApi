@@ -1,7 +1,19 @@
 from setuptools import setup
 
-setup(
-    name="readyfor_api",
-    version="1.0",
-    packages=['readyfor_api']
-)
+def local_requirements():
+    req_list = []
+    with open('requirements.txt') as requirements_file:
+        req_list = [line.strip() for line in requirements_file.readlines()]
+    install_reqs = list(filter(None, req_list))
+    return install_reqs
+
+setup(name='readyfor_api',
+      version='1.0',
+      description='An object oriented Python 3.5+ library to get information from readyfor',
+      url='https://github.com/TOSUKUi/readyfor-api',
+      author='TOSUKUi',
+      author_email='',
+      license='MIT',
+      packages=['readyfor_api'],
+      install_requires=local_requirements(),
+      zip_safe=False)
