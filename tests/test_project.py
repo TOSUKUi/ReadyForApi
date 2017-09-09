@@ -1,5 +1,5 @@
 import unittest
-from readyfor_api.project import *
+from readyforapi.project import *
 
 
 class TestProject(unittest.TestCase):

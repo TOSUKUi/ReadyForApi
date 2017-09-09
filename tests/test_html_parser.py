@@ -1,5 +1,5 @@
 import unittest
-from readyfor_api.html_parser import *
+from readyforapi.html_parser import *
 import tests.test_resources.dicts_for_tests as pps
 
 

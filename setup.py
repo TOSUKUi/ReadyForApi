@@ -7,13 +7,13 @@ def local_requirements():
     install_reqs = list(filter(None, req_list))
     return install_reqs
 
-setup(name='readyfor_api',
+setup(name='readyforapi',
       version='1.0',
       description='An object oriented Python 3.5+ library to get information from readyfor',
       url='https://github.com/TOSUKUi/readyfor-api',
       author='TOSUKUi',
       author_email='',
       license='MIT',
-      packages=['readyfor_api'],
+      packages=['readyforapi'],
       install_requires=local_requirements(),
       zip_safe=False)
