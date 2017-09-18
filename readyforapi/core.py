@@ -23,8 +23,8 @@ class ReadyForConnection(object):
         """
 
         delta = datetime.now() - cls.queried_at
-        time_to_sleep = timedelta(seconds=1.8) - delta
-        if delta < timedelta(seconds=1.8):
+        time_to_sleep = timedelta(seconds=1.3) - delta
+        if delta < timedelta(seconds=1.3):
             time.sleep(time_to_sleep.seconds)
         try:
             # User double curly-braces to tell python
@@ -35,7 +35,10 @@ class ReadyForConnection(object):
                                                               objects_name=objects_name,
                                                               id=object_id)
             cls.queried_at = datetime.now()
-            return request(method=method, url=query, params=kwargs)
+            response = request(method=method, url=query, params=kwargs)
+            if response.status_code % 400 < 100:
+                raise AccessException("4** error")
+            return response
         except:
             raise AccessException("some problem occurred when access")
 

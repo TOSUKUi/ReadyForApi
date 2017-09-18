@@ -189,14 +189,10 @@ class Project(ReadyForObject):
         response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier, sub_object="comments")
         comments_summary = html_parser.ProjectCommentsPageParser(response.text).parse()
         max_page = int(comments_summary["max_page"])
-        print(f"max_page = {max_page}")
-        for page in range(2, int(comments_summary["max_page"]) + 1):
-            print(f"page = {page} start")
+        for page in range(2, max_page + 1):
             response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier,
                                                            sub_object="comments", page=page)
             comments_summary["backers"].extend(html_parser.ProjectCommentsPageParser(response.text).parse()["backers"])
-            print(len(comments_summary["backers"]))
-            print(f"page = {page} end")
         return comments_summary
 
     @cached_property

@@ -15,19 +15,6 @@ class Parser(object):
     """
     def __init__(self, html_text):
         self.html_text = html_text
-        self.__error_detection()
-
-    def __error_detection(self):
-        print(f"{self.html_text}\n^----------------------------------------------------------------^")
-        html = lxml.html.fromstring(self.html_text)
-        root = html.body.xpath('/*')[0]
-        title_text = root.head.find('title').text
-        error_pattern = r'(404 error - クラウドファンディング Readyfor)'
-        is_error = list(map(lambda x: x.groups(), re.finditer(error_pattern, title_text)))
-        if len(is_error) > 0:
-            raise errors.PageAccessException("Get 4** error, Page not found")
-        else:
-            pass
 
     def parse(self):
         """
@@ -108,9 +95,10 @@ class ProjectCommentsPageParser(Parser):
         return {"backers": self.__comment_getter(), "max_page": self.__max_page()}
 
     def __comment_getter(self):
+        #print(f"222{self.html_text}\n----------------------------------")
         comments_pattern = r'<div class="Cheer-comment"><div class="Cheer-comment__image"><a href="/users/([0-9]*)"'
         comments_matches = re.finditer(comments_pattern, self.html_text)
-        backed_at_pattern = r'<time class="Cheer-comment__status__date" pubdate="(.*)">.*</time></div><p class="Cheer-comment__text">'
+        backed_at_pattern = r'<time class="Cheer-comment__status__date" pubdate="(\d{4}\-\d{2}\-\d{2})">.*</time></div><div class="Cheer-comment__text">'
         backed_at_matches = re.finditer(backed_at_pattern, self.html_text)
         return [{"backer_id": comment.groups()[0], "backed_at": backed_at.groups()[0]} for comment, backed_at in zip(comments_matches, backed_at_matches)]
 
