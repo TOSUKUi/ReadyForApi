@@ -2,6 +2,7 @@ from .core import ReadyForObject, ReadyForConnection, FacebookGraphConnection
 from cached_property import cached_property
 from . import html_parser, user
 from secrets.settings import Settings
+from datetime import datetime, timedelta
 
 
 class Project(ReadyForObject):
@@ -73,8 +74,11 @@ class Project(ReadyForObject):
         It is past goal amount of this project but not appear.
         :return: None
         """
-        anticipative_amount = self.summary["anticipative_amount"].replace(",", "")
-        return int(anticipative_amount)
+        try:
+            anticipative_amount = self.summary["anticipative_amount"].replace(",", "")
+            return int(anticipative_amount)
+        except:
+            return None
 
     @property
     def news_update_count(self):
@@ -90,7 +94,7 @@ class Project(ReadyForObject):
         Goal amount of past it appears when this project is setten 2nd goal.
         :return: goal amount of past.
         """
-        return self.summary["achievement_amount"]
+        return self.summary["achievement_amount"] if "achivement_amount" in self.summary else None
 
     @property
     def degree(self):
@@ -103,7 +107,7 @@ class Project(ReadyForObject):
     @property
     def expired_at_year(self):
         """
-        this parameter appear of project were end.
+        this parameter appear of project wes end.
         :return: the year when project end.
         :rtype: string
         """
@@ -115,7 +119,8 @@ class Project(ReadyForObject):
 
     @property
     def goal_amount(self):
-        return self.summary["goal_amount"]
+        goal_amount = self.summary["goal_amount"].replace(",", "")
+        return int(goal_amount)
 
     @property
     def image(self):
@@ -136,6 +141,17 @@ class Project(ReadyForObject):
     @property
     def keep_it_all(self):
         return self.summary["keep_it_all"]
+
+    @property
+    def deadline(self):
+        if self.summary["deadline"] is not None:
+            return datetime.strptime(self.summary["deadline"], "%Y-%m-%d")
+        else:
+            return datetime.today() + timedelta(days=3)
+
+    @cached_property
+    def is_succeed(self):
+        return True if self.funding_percent >= 100 else False
 
     @property
     def label_type(self):
@@ -170,7 +186,7 @@ class Project(ReadyForObject):
         :return: Facebook_Like
         """
         object_id = "{domain}/{object}/{name}".format(domain=Settings.readyfor_domain, object=Settings.project_domain, name=self.name)
-        return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.8")).parse()
+        return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.8").text).parse()
 
     @property
     def facebook_likes(self):
@@ -180,9 +196,11 @@ class Project(ReadyForObject):
     def facebook_comment_count(self):
         return self.__facebook_graph["share"]["comment_count"]
 
-    @property
+    @cached_property
     def category(self):
-        pass
+        for tag in self.tags:
+            if tag["tag_type"] == "category":
+                return tag["name"]
 
     @cached_property
     def comments_summary(self):
@@ -190,14 +208,17 @@ class Project(ReadyForObject):
         comments_summary = html_parser.ProjectCommentsPageParser(response.text).parse()
         max_page = int(comments_summary["max_page"])
         for page in range(2, max_page + 1):
-            response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier,
+            try:
+                response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier,
                                                            sub_object="comments", page=page)
-            comments_summary["backers"].extend(html_parser.ProjectCommentsPageParser(response.text).parse()["backers"])
-        return comments_summary
+                comments_summary["backers"].extend(html_parser.ProjectCommentsPageParser(response.text).parse()["backers"])
+            except:
+                continue
+        return [user.User(user_id=backer["backer_id"], backed_at=backer["backed_at"]) for backer in comments_summary["backers"]]
 
     @cached_property
     def _backers(self):
-        return [user.User(user_id=backer["backer_id"], backed_at=backer["backed_at"]) for backer in self.comments_summary["backers"]]
+        return self.comments_summary
 
     @property
     def backers(self):

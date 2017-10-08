@@ -33,6 +33,7 @@ class ProjectPageParser(Parser):
     def page_parser(self):
         project_dict = self.__project_json_getter()
         project_dict["project"].update(self.__project_tab_parser())
+        project_dict["project"].update(self.__project_deadline_parser())
         return project_dict["project"]
 
     def __project_json_getter(self):
@@ -77,13 +78,38 @@ class ProjectPageParser(Parser):
 
         tab_items = {}
         for tab_menu in tab_menus:
-            if tab_menu.find("span[@class='']").text == "新着情報":
-                update_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
-                tab_items.update({"news_update_count": update_count})
-            elif tab_menu.find("span[@class='']").text == "応援コメント":
-                comments_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
-                tab_items.update({"comments_count": comments_count})
+            if tab_menu.find("span") is not None:
+                if tab_menu.find("span").text == "新着情報":
+                    update_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
+                    tab_items.update({"news_update_count": int(update_count)})
+                elif tab_menu.find("span").text == "応援コメント":
+                    comments_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
+                    tab_items.update({"comments_count": int(comments_count)})
         return tab_items
+
+    def __project_deadline_parser(self):
+        regexp_time_suc = r'<div class="Project-visual__alert is-complete u-mt_15 u-mb_20"><span class="u-fs_18 u-font_b">プロジェクトが成立しました！<\/span><br \/><span class="u-fs_14">このプロジェクトは<br \/> (.+?)年(.+?)月(.+?)日\((.+?)\)(.+?):(.+?) に成立しました。<\/span><\/div>'
+        regexp_time_fail = r'<div class="Project-visual__alert is-miss u-mt_15 u-mb_20"><span class="u-fs_14">このプロジェクトは<br \/> (.+?)年(.+?)月(.+?)日\((.+?)\) (.+?):(.+?) に支援募集を締め切りました。<\/span><\/div>'
+        success_page_matches = re.finditer(regexp_time_suc, self.html_text)
+        failed_page_matches = re.finditer(regexp_time_fail, self.html_text)
+        success_date = None
+        failed_date = None
+
+        for match in success_page_matches:
+            if len(match.groups()) < 1:
+                break
+            success_date = '-'.join(match.groups()[0:3])
+        for match in failed_page_matches:
+            if len(match.groups()) < 1:
+                break
+            failed_date = '-'.join(match.groups()[0:3])
+
+        dead_line = None
+        if success_date is not None:
+            dead_line = success_date
+        elif failed_date is not None:
+            dead_line = failed_date
+        return {"deadline": dead_line}
 
     def __project_comments_count_parser(self):
         pattern = r''
@@ -92,7 +118,8 @@ class ProjectPageParser(Parser):
 class ProjectCommentsPageParser(Parser):
 
     def page_parser(self):
-        return {"backers": self.__comment_getter(), "max_page": self.__max_page()}
+        temp = {"backers": self.__comment_getter(), "max_page": self.__max_page()}
+        return temp
 
     def __comment_getter(self):
         #print(f"222{self.html_text}\n----------------------------------")
@@ -105,7 +132,11 @@ class ProjectCommentsPageParser(Parser):
     def __max_page(self):
         page_pattern = r'<span class="page">\n.*<a href=".*">(\d+)</a>\n</span>'
         page_matches = re.finditer(page_pattern, self.html_text)
-        return [page.groups()[0] for page in page_matches][-1]
+        pages = [page.groups()[0] for page in page_matches]
+        if len(pages) > 0:
+            return pages[-1]
+        else:
+            return 1
 
 
 
@@ -214,10 +245,9 @@ class FaceBookLikeParser(object):
         return self.__page_parser()
 
     def __page_parser(self):
-        return json.loads(self.api_response.text)
+        return json.loads(self.api_response)
 
 
 if __name__ == "__main__":
     f = open("tests/test_resources/project_page.html", "r")
     print(ProjectPageParser(f.read()).parse())
-

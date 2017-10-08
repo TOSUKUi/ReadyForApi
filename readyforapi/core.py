@@ -36,7 +36,7 @@ class ReadyForConnection(object):
                                                               id=object_id)
             cls.queried_at = datetime.now()
             response = request(method=method, url=query, params=kwargs)
-            if response.status_code % 400 < 100:
+            if 400 < response.status_code < 500:
                 raise AccessException("4** error")
             return response
         except:
@@ -55,6 +55,7 @@ class FacebookGraphConnection(object):
         Call an A
         :param object_name: the readyfor object name such like tags, projects, users...etc
         :param object_id: id of project or others
+        :param v: api version (e.g. 'v2.8'
         :param method: http method.
         :param param: specify to get more information such like comments, news , from object page
         :param kwargs   : kwargs of page. e.g. page...etc
