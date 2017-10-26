@@ -23,8 +23,8 @@ class ReadyForConnection(object):
         """
 
         delta = datetime.now() - cls.queried_at
-        time_to_sleep = timedelta(seconds=1.3) - delta
         if delta < timedelta(seconds=1.3):
+            time_to_sleep = timedelta(seconds=1.3) - delta
             time.sleep(time_to_sleep.seconds)
         try:
             # User double curly-braces to tell python
