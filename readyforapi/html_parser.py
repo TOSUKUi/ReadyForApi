@@ -4,6 +4,8 @@ I recommend to naming follow the pattern of {object_name}{sub_object}PageParser
 for easy to use.
 """
 import lxml.html
+from lxml.html import tostring
+import html
 import json
 import re
 from . import errors
@@ -34,27 +36,16 @@ class ProjectPageParser(Parser):
         project_dict = self.__project_json_getter()
         project_dict["project"].update(self.__project_tab_parser())
         project_dict["project"].update(self.__project_deadline_parser())
+        project_dict["project"].update(self.__project_text_parser())
         return project_dict["project"]
 
     def __project_json_getter(self):
-        _site_container = "div[@class='Site-container']"
-        _article = 'article'
-        _container = "div[@class='Container']"
-        _sidebar = "div[@class='Sidebar is-type0 u-fl_r']"
-        _u_em = "div[@class='u-em u-fs_18 u-font_b u-align_c u-mt_20 u-mb_20']"
-
-        html = lxml.html.fromstring(self.html_text)
-        root = html.body.xpath('/*')[0]
-        project_json = \
-            root.\
-            body.\
-            find(_site_container).\
-            find(_article).\
-            find(_container).\
-            find(_sidebar).\
-            find(_u_em).\
-            find('div')
-        return json.loads(str(project_json.attrib['data-react-props']))
+        react_props_pattern = r'<div data-react-class="PcLikeBtn" data-react-props="(.*)"></div></div><section>'
+        props_matches = re.finditer(react_props_pattern, self.html_text)
+        project_json = ""
+        for match in props_matches:
+            project_json = match.groups()[0].replace('&quot;', '"')
+        return json.loads(project_json)
 
     def __project_tab_parser(self):
         html = lxml.html.fromstring(self.html_text)
@@ -111,9 +102,16 @@ class ProjectPageParser(Parser):
             dead_line = failed_date
         return {"deadline": dead_line}
 
-    def __project_comments_count_parser(self):
-        pattern = r''
-
+    def __project_text_parser(self):
+        project_text = ""
+        text_pattern = r'<section class="Project-outline Tab__content">((\s|\S)*)</aside>\n\s*</section>'
+        text_matches = re.finditer(text_pattern, self.html_text)
+        for match in text_matches:
+            project_text = match.groups()[0]
+        img_pattern = r'<img.*src="(.*)".*/>'
+        text_matches = re.finditer(img_pattern, project_text)
+        images = [match.groups()[0] for match in text_matches]
+        return {'project_text': project_text, 'project_images': images}
 
 class ProjectCommentsPageParser(Parser):
 

@@ -127,12 +127,12 @@ class Project(ReadyForObject):
         return self.summary["image"]
 
     @property
-    def is_accomplish_report_republished(self):
-        return self.summary["is_accomplish_report_republished"]
+    def is_accomplish_report_published(self):
+        return self.summary["is_accomplish_report_published"]
 
     @cached_property
     def is_expired(self):
-        return True if self.summary["is_expired"] is "終了日" else False
+        return True if self.summary["is_expired"] == "終了日" else False
 
     @property
     def is_matching_complete(self):
@@ -227,3 +227,15 @@ class Project(ReadyForObject):
     @property
     def comments_count(self):
         return self.summary["comments_count"]
+
+    @property
+    def project_text(self):
+        return self.summary["project_text"]
+
+    @property
+    def project_images(self):
+        return self.summary["project_images"]
+
+    @property
+    def num_project_images(self):
+        return len(self.project_images)
