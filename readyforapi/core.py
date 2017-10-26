@@ -26,7 +26,7 @@ class ReadyForConnection(object):
         print("queried_at = {queried_at}, delta = {delta}".format(queried_at=cls.queried_at, delta=delta))
         if delta < timedelta(seconds=1.3):
             time_to_sleep = timedelta(seconds=1.3) - delta
-            print("time_to_sleep={time_to_sleep}".format(time_to_sleep=time_to_sleep))
+            print("time_to_sleep={time_to_sleep}".format(time_to_sleep=time_to_sleep.seconds))
             time.sleep(time_to_sleep.seconds)
         try:
             # User double curly-braces to tell python
@@ -36,8 +36,8 @@ class ReadyForConnection(object):
                 query = "{domain}/{objects_name}/{id}".format(domain=Settings.readyfor_domain,
                                                               objects_name=objects_name,
                                                               id=object_id)
-            cls.queried_at = datetime.now()
             response = request(method=method, url=query, params=kwargs)
+            cls.queried_at = datetime.now()
             if 400 < response.status_code < 500:
                 raise AccessException("4** error")
             return response
@@ -67,7 +67,7 @@ class FacebookGraphConnection(object):
         delta = datetime.now() - cls.queried_at
         time_to_sleep = timedelta(seconds=1) - delta
         if delta < timedelta(seconds=1):
-            time.sleep(time_to_sleep.seconds)
+            time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds)
         try:
             # User double curly-braces to tell python
             query = "{domain}/{id}".\
