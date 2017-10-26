@@ -9,6 +9,13 @@ class APIException(Exception):
     pass
 
 
+class ProjectPageEndException(APIException):
+    """
+    An error caused by crawl ended and hided project page
+    """
+    pass
+
+
 class APIProjectError(APIException):
     """
     An API error caused by a project error, like a html format is changed or html

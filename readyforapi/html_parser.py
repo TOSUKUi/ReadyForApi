@@ -17,6 +17,10 @@ class Parser(object):
     """
     def __init__(self, html_text):
         self.html_text = html_text
+        if self.detect_end():
+            raise errors.ProjectPageEndException("プロジェクトが終わってます")
+
+
 
     def parse(self):
         """
@@ -29,6 +33,18 @@ class Parser(object):
     def page_parser(self):
         pass
 
+
+    def detect_end(self):
+        title_pattern = r"<title>\n(.*)\n</title>"
+        error_title_pattern = '    こちらのプロジェクトの掲載は終了いたしました - クラウドファンディング - Readyfor（レディーフォー）'
+        matches = re.finditer(title_pattern, self.html_text)
+        title = ""
+        for match in matches:
+            title = match.groups()[0]
+        if title == error_title_pattern:
+            return True
+        else:
+            return False
 
 class ProjectPageParser(Parser):
 
