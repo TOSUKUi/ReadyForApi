@@ -23,11 +23,9 @@ class ReadyForConnection(object):
         """
 
         delta = datetime.now() - cls.queried_at
-        print("queried_at = {queried_at}, delta = {delta}".format(queried_at=cls.queried_at, delta=delta))
-        if delta < timedelta(seconds=1.3):
-            time_to_sleep = timedelta(seconds=1.3) - delta
-            print("time_to_sleep={time_to_sleep}".format(time_to_sleep=time_to_sleep.seconds))
-            time.sleep(time_to_sleep.seconds)
+        if delta < timedelta(seconds=1.6):
+            time_to_sleep = timedelta(seconds=1.6) - delta
+            time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds)
         try:
             # User double curly-braces to tell python
             objects_name = cls.inflicter.pluralize(object_name)
@@ -65,8 +63,8 @@ class FacebookGraphConnection(object):
         """
 
         delta = datetime.now() - cls.queried_at
-        time_to_sleep = timedelta(seconds=1) - delta
-        if delta < timedelta(seconds=1):
+        time_to_sleep = timedelta(seconds=1.6) - delta
+        if delta < timedelta(seconds=1.6):
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds)
         try:
             # User double curly-braces to tell python
