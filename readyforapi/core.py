@@ -25,7 +25,7 @@ class ReadyForConnection(object):
         delta = datetime.now() - cls.queried_at
         if delta < timedelta(seconds=1.6):
             time_to_sleep = timedelta(seconds=1.6) - delta
-            time.sleep(time_to_sleep.microseconds * 10e-7)
+            time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds*10e-7)
         try:
             # User double curly-braces to tell python
             objects_name = cls.inflicter.pluralize(object_name)
