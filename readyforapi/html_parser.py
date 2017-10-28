@@ -61,7 +61,6 @@ class ProjectPageParser(Parser):
         project_json = ""
         for match in props_matches:
             project_json = match.groups()[0].replace('&quot;', '"')
-        print(project_json)
         return json.loads(project_json)
 
     def __project_tab_parser(self):
