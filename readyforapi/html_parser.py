@@ -17,24 +17,24 @@ class Parser(object):
     """
     def __init__(self, html_text):
         self.html_text = html_text
-        if self.detect_end():
+        if self.__detect_end():
             raise errors.ProjectPageEndException("プロジェクトが終わってます")
-
-
+        elif self.__detect_will_be_published():
+            raise errors.ProjectPageNotPublishedException("プロジェクトがまだ公開されていません")
 
     def parse(self):
         """
         :return: Attribute object of page information.
         :rtype: AttrDict
         """
+
         page_dict = self.page_parser()
         return page_dict
 
     def page_parser(self):
         pass
 
-
-    def detect_end(self):
+    def __detect_end(self):
         title_pattern = r"<title>\n(.*)\n</title>"
         error_title_pattern = '    こちらのプロジェクトの掲載は終了いたしました - クラウドファンディング - Readyfor（レディーフォー）'
         matches = re.finditer(title_pattern, self.html_text)
@@ -45,6 +45,19 @@ class Parser(object):
             return True
         else:
             return False
+
+    def __detect_will_be_published(self):
+        will_be_published_text = "COMING SOON!"
+        message_text = ""
+        message_pattern = r'<div class="message">\n.*<h2>(.*)</h2>\n'
+        text_matches = re.finditer(message_pattern, self.html_text)
+        for match in text_matches:
+            message_text = match.groups()[0]
+        if message_text == will_be_published_text:
+            return True
+        else:
+            return False
+
 
 class ProjectPageParser(Parser):
 
@@ -65,6 +78,7 @@ class ProjectPageParser(Parser):
 
     def __project_tab_parser(self):
         html = lxml.html.fromstring(self.html_text)
+
         root = html.body.xpath('/*')[0]
         _site_container = "div[@class='Site-container']"
         _article = 'article'
@@ -72,16 +86,20 @@ class ProjectPageParser(Parser):
         _tab_wrapper = 'div[@class="tab-wrapper"]'
         _tab_menu = 'div[@class="Tab__menu tabnav-tabs"]'
         _tabnav_tabs = 'nav[@class="tabnav-tabs"]'
-        tab_menus = \
-            root. \
-            body. \
-            find(_site_container).\
-            find(_article). \
-            find(_project_visual_container).\
-            find(_tab_wrapper).\
-            find(_tab_menu).\
-            find(_tabnav_tabs).\
-            findall("a")
+        tab_menus = ""
+        try:
+            tab_menus = \
+                root. \
+                body. \
+                find(_site_container).\
+                find(_article). \
+                find(_project_visual_container).\
+                find(_tab_wrapper).\
+                find(_tab_menu).\
+                find(_tabnav_tabs).\
+                findall("a")
+        except:
+            return {"news_update_count": -1, "comments_count": -1}
 
         tab_items = {}
         for tab_menu in tab_menus:
@@ -129,6 +147,7 @@ class ProjectPageParser(Parser):
         images = [match.groups()[0] for match in text_matches]
         return {'project_text': project_text, 'project_images': images}
 
+
 class ProjectCommentsPageParser(Parser):
 
     def page_parser(self):
@@ -151,7 +170,6 @@ class ProjectCommentsPageParser(Parser):
             return pages[-1]
         else:
             return 1
-
 
 
 class UserPageParser(Parser):

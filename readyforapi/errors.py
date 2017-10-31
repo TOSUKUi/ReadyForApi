@@ -16,9 +16,30 @@ class ProjectPageEndException(APIException):
     pass
 
 
+class ProjectPageNotPublishedException(APIException):
+    """
+    An error caused by crawl when project is not published 
+    """
+    pass
+
+
 class APIProjectError(APIException):
     """
     An API error caused by a project error, like a html format is changed or html
+    """
+    pass
+
+
+class HtmlParseException(APIException):
+    """
+    An Api error caused by parser error
+    """
+    pass
+
+
+class ProjectPageTabParseException(HtmlParseException):
+    """
+    An html parse error caused by parser error of project tab.
     """
     pass
 

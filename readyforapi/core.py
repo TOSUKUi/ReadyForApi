@@ -23,8 +23,8 @@ class ReadyForConnection(object):
         """
 
         delta = datetime.now() - cls.queried_at
-        if delta < timedelta(seconds=1.6):
-            time_to_sleep = timedelta(seconds=1.6) - delta
+        if delta < timedelta(seconds=2.0):
+            time_to_sleep = timedelta(seconds=2.0) - delta
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds*10e-7)
         try:
             # User double curly-braces to tell python
@@ -63,9 +63,9 @@ class FacebookGraphConnection(object):
         """
 
         delta = datetime.now() - cls.queried_at
-        time_to_sleep = timedelta(seconds=1.6) - delta
-        if delta < timedelta(seconds=1.6):
-            time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds)
+        time_to_sleep = timedelta(seconds=2.0) - delta
+        if delta < timedelta(seconds=2.0):
+            time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds * 10e-7)
         try:
             # User double curly-braces to tell python
             query = "{domain}/{id}".\
