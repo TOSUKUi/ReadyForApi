@@ -26,30 +26,27 @@ class ReadyForConnection(object):
         if delta < timedelta(seconds=2.0):
             time_to_sleep = timedelta(seconds=2.0) - delta
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds*10e-7)
-        try:
-            # User double curly-braces to tell python
-            objects_name = cls.inflicter.pluralize(object_name)
-            query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=Settings.readyfor_domain, objects_name=objects_name, id=object_id, sub_object=sub_object)
-            if sub_object is None:
-                query = "{domain}/{objects_name}/{id}".format(domain=Settings.readyfor_domain,
-                                                              objects_name=objects_name,
-                                                              id=object_id)
-            response = request(method=method, url=query, params=kwargs)
-            cls.queried_at = datetime.now()
-            if 400 < response.status_code < 500:
-                raise AccessException("4** error")
-            return response
-        except:
-            raise AccessException("some problem occurred when access")
+        # User double curly-braces to tell python
+        objects_name = cls.inflicter.pluralize(object_name)
+        query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=Settings.readyfor_domain, objects_name=objects_name, id=object_id, sub_object=sub_object)
+        if sub_object is None:
+            query = "{domain}/{objects_name}/{id}".format(domain=Settings.readyfor_domain,
+                                                          objects_name=objects_name,
+                                                          id=object_id)
+        response = request(method=method, url=query, params=kwargs)
+        cls.queried_at = datetime.now()
+        if 400 < response.status_code:
+            raise AccessException("{code} error".format(code=response.status_code))
+        return response
 
 
 class FacebookGraphConnection(object):
     queried_at = datetime.now()
-    QUERY_DOMAIN = "http://graph.facebook.com"
+    QUERY_DOMAIN = "https://graph.facebook.com/v2.10"
 
 
     @classmethod
-    def call(cls, object_id, v, method="GET", **kwargs):
+    def call(cls, object_id, v, method="GET"):
 
         """
         Call an A
@@ -64,14 +61,16 @@ class FacebookGraphConnection(object):
 
         delta = datetime.now() - cls.queried_at
         time_to_sleep = timedelta(seconds=2.0) - delta
+        params = {"fields": "engagement", "access_token": Settings.access_token}
+        params.update({"id": object_id})
         if delta < timedelta(seconds=2.0):
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds * 10e-7)
         try:
             # User double curly-braces to tell python
-            query = "{domain}/{id}".\
-                format(domain=cls.QUERY_DOMAIN, v=v, id=object_id)
+            query = "{domain}/{v}".\
+                format(domain=cls.QUERY_DOMAIN, v=v)
             cls.queried_at = datetime.now()
-            return request(method=method, url=query, params=kwargs)
+            return request(method=method, url=query, params=params)
         except:
             raise AccessException("some problem occurred when access")
 
