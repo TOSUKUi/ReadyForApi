@@ -4,3 +4,8 @@
 .python-version
 /.idea/
 secrets
+build
+dist
+*.egg-info
+.RData
+.Rhistory
