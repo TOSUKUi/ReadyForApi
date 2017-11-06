@@ -42,7 +42,7 @@ class ReadyForConnection(object):
 
 class FacebookGraphConnection(object):
     queried_at = datetime.now()
-    QUERY_DOMAIN = "https://graph.facebook.com/v2.10"
+    QUERY_DOMAIN = "https://graph.facebook.com"
 
 
     @classmethod
@@ -70,7 +70,9 @@ class FacebookGraphConnection(object):
             query = "{domain}/{v}".\
                 format(domain=cls.QUERY_DOMAIN, v=v)
             cls.queried_at = datetime.now()
-            return request(method=method, url=query, params=params)
+            r = request(method=method, url=query, params=params)
+            print(r.url)
+            return r
         except:
             raise AccessException("some problem occurred when access")
 

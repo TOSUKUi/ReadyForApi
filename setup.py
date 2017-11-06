@@ -8,7 +8,7 @@ def local_requirements():
     return install_reqs
 
 setup(name='readyforapi',
-      version='1.1.6.2',
+      version='1.1.6.6',
       description='An object oriented Python 3.5+ library to get information from readyfor',
       url='https://github.com/TOSUKUi/readyfor-api',
       author='TOSUKUi',

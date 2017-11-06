@@ -1,7 +1,5 @@
 class Settings():
-    access_token = "EAACEdEose0cBANZALwFvvhkMvqhhbictZBe4ZCAtAG6q7lYGphuJsjJ7y8Rpsz5c7XLVIMIm6pooValpqr" \
-                   "hP5ZCRdJUoGOa3zgTZAx0ZAtvfSoPKjxHWAaLlKBOYcqSuUN6vVmPUH0lYBLZCn1EIGUqirjZBjZCTQWTPc" \
-                   "ZBbj7IuKu2hcC7ic9rP1hBj9TWpeutpMZD"
+    access_token = "191781241382934|FhFbsuN-S6Hx9CVYXd67NvCMQnA"
     readyfor_domain = "https://readyfor.jp"
     project_domain = "projects"
     user_domain = "users"

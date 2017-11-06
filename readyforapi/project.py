@@ -197,7 +197,6 @@ class Project(ReadyForObject):
 
     @property
     def facebook_reaction_count(self):
-        print(self.__facebook_graph)
         return self.__facebook_graph["engagement"]["reaction_count"]
 
     @property
