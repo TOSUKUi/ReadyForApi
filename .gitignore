@@ -4,7 +4,7 @@
 .python-version
 /.idea/
 secrets
-build
+build/*
 dist
 *.egg-info
 .RData
