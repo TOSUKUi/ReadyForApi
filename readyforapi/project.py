@@ -81,6 +81,13 @@ class Project(ReadyForObject):
             return None
 
     @property
+    def is_2nd_stage(self):
+        """
+        :return: if 2nd stage , true else false 
+        """
+        return self.anticipative_amount is not None
+
+    @property
     def news_update_count(self):
         """
         新着情報の更新回数
@@ -186,11 +193,16 @@ class Project(ReadyForObject):
         :return: Facebook_Like
         """
         object_id = "{domain}/{object}/{name}".format(domain=Settings.readyfor_domain, object=Settings.project_domain, name=self.name)
-        return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.8").text).parse()
+        return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.10").text).parse()
 
     @property
-    def facebook_likes(self):
-        return self.__facebook_graph["share"]["share_count"]
+    def facebook_reaction_count(self):
+        print(self.__facebook_graph)
+        return self.__facebook_graph["engagement"]["reaction_count"]
+
+    @property
+    def facebook_share_count(self):
+        return self.__facebook_graph["engagement"]["share_count"]
 
     @property
     def facebook_comment_count(self):
