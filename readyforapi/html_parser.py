@@ -160,7 +160,15 @@ class ProjectCommentsPageParser(Parser):
         comments_matches = re.finditer(comments_pattern, self.html_text)
         backed_at_pattern = r'<time class="Cheer-comment__status__date" pubdate="(\d{4}\-\d{2}\-\d{2})">\d{2}\/\d{2}\/\d{2}<\/time><\/div><div class="Cheer-comment__text">'
         backed_at_matches = re.finditer(backed_at_pattern, self.html_text)
-        return [{"backer_id": comment.groups()[0], "backed_at": backed_at.groups()[0]} for comment, backed_at in zip(comments_matches, backed_at_matches)]
+
+        comment_unit_pattern = r'<article style="border-bottom: 1px solid #ebebeb">(.+?)</article>'
+        comment_units = re.finditer(comment_unit_pattern, self.html_text)
+        backer_info = []
+        for comment_unit in comment_units:
+            date, name, uid = self.__extract(comment_unit.groups()[0])
+            backer_info.append({"backer_name": name, "backer_id": uid, "backed_at": date})
+        print(backer_info)
+        return backer_info
 
     def __max_page(self):
         page_pattern = r'<span class="page">\n.*<a href=".*">(\d+)</a>\n</span>'
@@ -170,6 +178,23 @@ class ProjectCommentsPageParser(Parser):
             return pages[-1]
         else:
             return 1
+
+    def __extract(self, text):
+        date = re.search(r'pubdate="(.*?)"', text).group(1)
+        link = re.search(r'<div class="Cheer-comment__name"><b>(.*?)</b>', text)
+        names = re.search(r'<a href="/users/(\d+?)">(.*?)</a>', link.group())
+
+        name = ''
+        uid = ''
+
+        if names != None:
+            uid = names.group(1)
+            name = names.group(2)
+        else:
+            uid = 'NoID'
+            name = link.group(1)
+
+        return date, name, uid
 
 
 class UserPageParser(Parser):

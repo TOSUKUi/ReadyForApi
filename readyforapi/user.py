@@ -8,7 +8,7 @@ from cached_property import cached_property
 
 class User(ReadyForObject):
 
-    def __init__(self, user_id=None, user_url=None, backed_at=None):
+    def __init__(self, user_id=None, user_url=None, backed_at=None, name=None):
         if user_id is None and user_url is None:
             raise ValueError('no one of argument which must be supplied')
         elif user_id is not None:
@@ -19,6 +19,7 @@ class User(ReadyForObject):
             self.__id = None
         # This property activate when this user is gotten from comment page of project.
         self.backed_at = backed_at
+        self.setted_name = name
 
     @cached_property
     def from_user_page(self):
@@ -39,7 +40,10 @@ class User(ReadyForObject):
 
     @property
     def name(self):
-        return self.from_user_page["name"]
+        if self.setted_name is not None:
+            return self.setted_name
+        else:
+            return self.from_user_page["name"]
 
     @property
     def url(self):
