@@ -225,7 +225,7 @@ class Project(ReadyForObject):
                 comments_summary["backers"].extend(html_parser.ProjectCommentsPageParser(response.text).parse()["backers"])
             except:
                 continue
-        return [user.User(user_id=backer["backer_id"], backed_at=backer["backed_at"]) for backer in comments_summary["backers"]]
+        return [user.User(user_id=backer["backer_id"], backed_at=backer["backed_at"], name=backer["backer_name"]) for backer in comments_summary["backers"]]
 
     @cached_property
     def _backers(self):

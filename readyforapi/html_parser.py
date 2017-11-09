@@ -155,12 +155,6 @@ class ProjectCommentsPageParser(Parser):
         return temp
 
     def __comment_getter(self):
-        #print(f"222{self.html_text}\n----------------------------------")
-        comments_pattern = r'<div class="Cheer-comment"><div class="Cheer-comment__image"><a href="\/users\/([0-9]*)"'
-        comments_matches = re.finditer(comments_pattern, self.html_text)
-        backed_at_pattern = r'<time class="Cheer-comment__status__date" pubdate="(\d{4}\-\d{2}\-\d{2})">\d{2}\/\d{2}\/\d{2}<\/time><\/div><div class="Cheer-comment__text">'
-        backed_at_matches = re.finditer(backed_at_pattern, self.html_text)
-
         comment_unit_pattern = r'<article style="border-bottom: 1px solid #ebebeb">(.+?)</article>'
         comment_units = re.finditer(comment_unit_pattern, self.html_text)
         backer_info = []
