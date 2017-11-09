@@ -5,11 +5,9 @@ import time
 from inflector import Inflector
 
 
-facebook_token = None
-
 
 def set_tokens(_facebook_token=None):
-    facebook_token = _facebook_token
+    FacebookGraphConnection.facebook_token = _facebook_token
 
 
 class ReadyForConnection(object):
@@ -50,6 +48,10 @@ class ReadyForConnection(object):
 class FacebookGraphConnection(object):
     queried_at = datetime.now()
     QUERY_DOMAIN = "https://graph.facebook.com"
+    facebook_token = ""
+
+    def set_token(self, token):
+        self.facebook_token = token
 
 
     @classmethod
@@ -68,7 +70,7 @@ class FacebookGraphConnection(object):
 
         delta = datetime.now() - cls.queried_at
         time_to_sleep = timedelta(seconds=2.0) - delta
-        params = {"fields": "engagement", "access_token": facebook_token}
+        params = {"fields": "engagement", "access_token": cls.facebook_token}
         params.update({"id": object_id})
         if delta < timedelta(seconds=2.0):
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds * 10e-7)
@@ -80,6 +82,7 @@ class FacebookGraphConnection(object):
             return request(method=method, url=query, params=params)
         except:
             raise AccessException("some problem occurred when access")
+
 
 class ReadyForObject(object):
     """
