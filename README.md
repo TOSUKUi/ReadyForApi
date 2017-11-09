@@ -15,10 +15,11 @@ pip install readyfor-api
 
 ## How to Use
 ```python
->>> import readyfor_api
->>> project = readyfor_api.project.Project(project_id=10946)
+>>> import readyforapi
+>>> readyforapi.core.set_tokens(_facebook_token="<your facebook app token>")
+>>> project = readyforapi.project.Project(project_id=10946)
 Or:
->>> project = readyfor_api.project.Project(project_key="beehive")
+>>> project = readyforapi.project.Project(project_key="beehive")
 # easy to get project data
 >>> project.name
 beehive
