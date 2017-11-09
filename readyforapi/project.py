@@ -184,7 +184,7 @@ class Project(ReadyForObject):
 
     @cached_property
     def author(self):
-        return user.User(user_url=self.summary["user_profile_url"])
+        return user.User(user_url=self.summary["user_profile_url"], name=self.summary["user"]["name"])
 
     @cached_property
     def __facebook_graph(self):
