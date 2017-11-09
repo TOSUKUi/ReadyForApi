@@ -161,7 +161,6 @@ class ProjectCommentsPageParser(Parser):
         for comment_unit in comment_units:
             date, name, uid = self.__extract(comment_unit.groups()[0])
             backer_info.append({"backer_name": name, "backer_id": uid, "backed_at": date})
-        print(backer_info)
         return backer_info
 
     def __max_page(self):
