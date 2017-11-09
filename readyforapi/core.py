@@ -1,9 +1,16 @@
 from requests import request
 from .errors import *
-from secrets.settings import Settings
 from datetime import datetime, timedelta
 import time
 from inflector import Inflector
+
+
+facebook_token = None
+
+
+def set_tokens(_facebook_token=None):
+    facebook_token = _facebook_token
+
 
 class ReadyForConnection(object):
     queried_at = datetime.now()
@@ -21,16 +28,16 @@ class ReadyForConnection(object):
         :param kwargs   : kwargs of page. e.g. page...etc
         :return: response
         """
-
+        domain = "https://readyfor.jp"
         delta = datetime.now() - cls.queried_at
         if delta < timedelta(seconds=2.0):
             time_to_sleep = timedelta(seconds=2.0) - delta
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds*10e-7)
         # User double curly-braces to tell python
         objects_name = cls.inflicter.pluralize(object_name)
-        query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=Settings.readyfor_domain, objects_name=objects_name, id=object_id, sub_object=sub_object)
+        query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=domain, objects_name=objects_name, id=object_id, sub_object=sub_object)
         if sub_object is None:
-            query = "{domain}/{objects_name}/{id}".format(domain=Settings.readyfor_domain,
+            query = "{domain}/{objects_name}/{id}".format(domain=domain,
                                                           objects_name=objects_name,
                                                           id=object_id)
         response = request(method=method, url=query, params=kwargs)
@@ -61,7 +68,7 @@ class FacebookGraphConnection(object):
 
         delta = datetime.now() - cls.queried_at
         time_to_sleep = timedelta(seconds=2.0) - delta
-        params = {"fields": "engagement", "access_token": Settings.access_token}
+        params = {"fields": "engagement", "access_token": facebook_token}
         params.update({"id": object_id})
         if delta < timedelta(seconds=2.0):
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds * 10e-7)

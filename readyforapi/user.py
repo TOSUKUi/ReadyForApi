@@ -1,6 +1,5 @@
 # make this until 2017/5/30
 from . import *
-from secrets.settings import Settings
 from . import project
 from .core import ReadyForObject, ReadyForConnection
 from cached_property import cached_property
@@ -51,8 +50,8 @@ class User(ReadyForObject):
             return self.user_url
         else:
             return "{domain}/{users}/{id}".format(
-                domain=Settings.readyfor_domain,
-                users=Settings.user_domain,
+                domain="https://readyfor.jp",
+                users="users",
                 id=self.id
             )
 

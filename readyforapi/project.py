@@ -1,7 +1,6 @@
 from .core import ReadyForObject, ReadyForConnection, FacebookGraphConnection
 from cached_property import cached_property
 from . import html_parser, user
-from secrets.settings import Settings
 from datetime import datetime, timedelta
 
 
@@ -58,7 +57,7 @@ class Project(ReadyForObject):
         if self.project_url is not None:
             return self.project_url
         else:
-            return "{domain}/{key}".format(domain=Settings.project_domain, key=self.name)
+            return "{domain}/{key}".format(domain="projects", key=self.name)
 
     @cached_property
     def amount(self):
@@ -192,7 +191,8 @@ class Project(ReadyForObject):
         """
         :return: Facebook_Like
         """
-        object_id = "{domain}/{object}/{name}".format(domain=Settings.readyfor_domain, object=Settings.project_domain, name=self.name)
+        domain = "https://readyfor.jp"
+        object_id = "{domain}/{object}/{name}".format(domain=domain, object="projects", name=self.name)
         return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.10").text).parse()
 
     @property
