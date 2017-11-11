@@ -98,9 +98,10 @@ class Project(ReadyForObject):
     def achievement_amount(self):
         """
         Goal amount of past it appears when this project is setten 2nd goal.
+        readyfor typo this property
         :return: goal amount of past.
         """
-        return self.summary["achievement_amount"] if "achivement_amount" in self.summary else None
+        return self.summary["achivement_amount"] if "achivement_amount" in self.summary else None
 
     @property
     def degree(self):
