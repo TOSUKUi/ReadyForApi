@@ -57,7 +57,7 @@ class Project(ReadyForObject):
         if self.project_url is not None:
             return self.project_url
         else:
-            return "{domain}/{key}".format(domain="projects", key=self.name)
+            return "{domain}/{object}/{key}".format(domain="https://readyfor.jp", object="projects", key=self.name)
 
     @cached_property
     def amount(self):
