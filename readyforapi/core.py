@@ -15,12 +15,12 @@ class ReadyForConnection(object):
     inflicter = Inflector()
 
     @classmethod
-    def call(cls, object_name=None, object_id=None, sub_object=None, method="GET", test=None, **kwargs):
+    def call(cls, objects_kind=None, object_id=None, sub_object_kind=None, method="GET", test=None, **kwargs):
 
         """
         Call an A
-        :param object_name: the readyfor object name such like tags, projects, users...etc
-        :param object_id: id of project or others
+        :param objects_kind: the readyfor object name. e.g. tags, projects, users...etc
+        :param object_id: id of object which is include in object_name category
         :param method: http method.
         :param param: specify to get more information such like comments, news , from object page
         :param kwargs   : kwargs of page. e.g. page...etc
@@ -31,12 +31,10 @@ class ReadyForConnection(object):
         if delta < timedelta(seconds=2.0):
             time_to_sleep = timedelta(seconds=2.0) - delta
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds*10e-7)
-        # User double curly-braces to tell python
-        objects_name = cls.inflicter.pluralize(object_name)
-        query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=domain, objects_name=objects_name, id=object_id, sub_object=sub_object)
-        if sub_object is None:
+        query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=domain, objects_name=objects_kind, id=object_id, sub_object=sub_object_kind)
+        if sub_object_kind is None:
             query = "{domain}/{objects_name}/{id}".format(domain=domain,
-                                                          objects_name=objects_name,
+                                                          objects_name=objects_kind,
                                                           id=object_id)
         response = request(method=method, url=query, params=kwargs)
         cls.queried_at = datetime.now()

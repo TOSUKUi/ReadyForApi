@@ -26,6 +26,10 @@ class Project(ReadyForObject):
 
     @cached_property
     def __project_identifier(self):
+        """
+        this method return porject identifier for summary request.
+        :return: project_key: if project_key or project_url is exist. project_id: if self.__id is exist. 
+        """
         if self.project_key is not None:
             return self.project_key
         elif self.__id is not None:
@@ -35,7 +39,7 @@ class Project(ReadyForObject):
 
     @cached_property
     def summary(self):
-        response = ReadyForConnection.call(object_name="projects", object_id=self.__project_identifier, param=None, method="GET")
+        response = ReadyForConnection.call(objects_kind="projects", object_id=self.__project_identifier, param=None, method="GET")
         return html_parser.ProjectPageParser(response.text).parse()
 
     @cached_property
@@ -216,13 +220,13 @@ class Project(ReadyForObject):
 
     @cached_property
     def comments_summary(self):
-        response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier, sub_object="comments")
+        response = ReadyForConnection.call(objects_kind="project", object_id=self.__project_identifier, sub_object_kind="comments")
         comments_summary = html_parser.ProjectCommentsPageParser(response.text).parse()
         max_page = int(comments_summary["max_page"])
         for page in range(2, max_page + 1):
             try:
-                response = ReadyForConnection.call(object_name="project", object_id=self.__project_identifier,
-                                                           sub_object="comments", page=page)
+                response = ReadyForConnection.call(objects_kind="project", object_id=self.__project_identifier,
+                                                   sub_object_kind="comments", page=page)
                 comments_summary["backers"].extend(html_parser.ProjectCommentsPageParser(response.text).parse()["backers"])
             except:
                 continue
@@ -238,7 +242,7 @@ class Project(ReadyForObject):
 
     @property
     def comments_count(self):
-        return self.summary["comments_count"]
+        return int(self.summary["comments_count"])
 
     @property
     def project_text(self):
@@ -251,3 +255,4 @@ class Project(ReadyForObject):
     @property
     def num_project_images(self):
         return len(self.project_images)
+

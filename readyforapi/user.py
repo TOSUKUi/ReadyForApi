@@ -27,7 +27,7 @@ class User(ReadyForObject):
             user_identifier = self.__id
         elif self.user_url is not None:
             user_identifier = self.user_url.split("/")[4]
-        response = ReadyForConnection.call(object_kind="users", object_id=user_identifier, param=None, method="GET")
+        response = ReadyForConnection.call(objects_kind="users", object_id=user_identifier, param=None, method="GET")
         return html_parser.UserPageParser(response.text).parse()
 
     @cached_property
