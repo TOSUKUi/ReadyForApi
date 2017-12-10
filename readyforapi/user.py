@@ -27,7 +27,7 @@ class User(ReadyForObject):
             user_identifier = self.__id
         elif self.user_url is not None:
             user_identifier = self.user_url.split("/")[4]
-        response = ReadyForConnection.call(object_name="users", object_id=user_identifier, param=None, method="GET")
+        response = ReadyForConnection.call(object_kind="users", object_id=user_identifier, param=None, method="GET")
         return html_parser.UserPageParser(response.text).parse()
 
     @cached_property
@@ -58,14 +58,6 @@ class User(ReadyForObject):
     @property
     def biography(self):
         return self.from_user_page["biography"]
-
-    @cached_property
-    def backed_projects(self):
-        return [project.Project(project_key=project_key) for project_key in self.from_user_page["backed_projects"]]
-
-    @cached_property
-    def created_projects(self):
-        return [project.Project(project_key=project_key) for project_key in self.from_user_page["created_projects"]]
 
     @property
     def sns_links(self):

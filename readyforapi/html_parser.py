@@ -35,6 +35,10 @@ class Parser(object):
         pass
 
     def __detect_end(self):
+        """
+        detect project page publishing is end or not
+        :return: 
+        """
         title_pattern = r"<title>\n(.*)\n</title>"
         error_title_pattern = '    こちらのプロジェクトの掲載は終了いたしました - クラウドファンディング - Readyfor（レディーフォー）'
         matches = re.finditer(title_pattern, self.html_text)
@@ -47,6 +51,10 @@ class Parser(object):
             return False
 
     def __detect_will_be_published(self):
+        """
+        detect is project page shows it will published massage or not 
+        :return: 
+        """
         will_be_published_text = "COMING SOON!"
         message_text = ""
         message_pattern = r'<div class="message">\n.*<h2>(.*)</h2>\n'
@@ -60,12 +68,16 @@ class Parser(object):
 
 
 class ProjectPageParser(Parser):
-
+    """
+    A parser which parse project page. 
+    It is used when project object properties are called.
+    """
     def page_parser(self):
         project_dict = self.__project_json_getter()
         project_dict["project"].update(self.__project_tab_parser())
         project_dict["project"].update(self.__project_deadline_parser())
         project_dict["project"].update(self.__project_text_parser())
+
         return project_dict["project"]
 
     def __project_json_getter(self):
@@ -77,40 +89,20 @@ class ProjectPageParser(Parser):
         return json.loads(project_json)
 
     def __project_tab_parser(self):
-        html = lxml.html.fromstring(self.html_text)
+        project_tab_pattern = r'<nav class="tabnav-tabs">(.*)</nav></div></div></div><div class="Container">'
+        project_tab = re.search(project_tab_pattern, self.html_text).group(1)
+        self.project_tab = project_tab
+        abstract, news_update_count, comments_count = self.__project_tab_splitter()
+        return {"news_update_count": news_update_count, "comments_count": comments_count}
 
-        root = html.body.xpath('/*')[0]
-        _site_container = "div[@class='Site-container']"
-        _article = 'article'
-        _project_visual_container = "div[@class='Project-visual Container u-mb_20 u-clrfix']"
-        _tab_wrapper = 'div[@class="tab-wrapper"]'
-        _tab_menu = 'div[@class="Tab__menu tabnav-tabs"]'
-        _tabnav_tabs = 'nav[@class="tabnav-tabs"]'
-        tab_menus = ""
-        try:
-            tab_menus = \
-                root. \
-                body. \
-                find(_site_container).\
-                find(_article). \
-                find(_project_visual_container).\
-                find(_tab_wrapper).\
-                find(_tab_menu).\
-                find(_tabnav_tabs).\
-                findall("a")
-        except:
-            return {"news_update_count": -1, "comments_count": -1}
-
-        tab_items = {}
-        for tab_menu in tab_menus:
-            if tab_menu.find("span") is not None:
-                if tab_menu.find("span").text == "新着情報":
-                    update_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
-                    tab_items.update({"news_update_count": int(update_count)})
-                elif tab_menu.find("span").text == "応援コメント":
-                    comments_count = tab_menu.find("span[@class='Tab__menu-icon Icon-num']").text
-                    tab_items.update({"comments_count": int(comments_count)})
-        return tab_items
+    def __project_tab_splitter(self):
+        project_tab_units = re.finditer(r'<a class="tabnav-tab(.*?)</a>', self.project_tab)
+        for project_tab_unit in project_tab_units:
+            num = re.search(r'<span class="Tab__menu-icon Icon-num">(\d*?)</span>', project_tab_unit.group(1))
+            if num is not None:
+                yield num.group(1)
+            else:
+                yield None
 
     def __project_deadline_parser(self):
         regexp_time_suc = r'<div class="Project-visual__alert is-complete u-mt_15 u-mb_20"><span class="u-fs_18 u-font_b">プロジェクトが成立しました！<\/span><br \/><span class="u-fs_14">このプロジェクトは<br \/> (.+?)年(.+?)月(.+?)日\((.+?)\)(.+?):(.+?) に成立しました。<\/span><\/div>'
@@ -142,7 +134,7 @@ class ProjectPageParser(Parser):
         text_matches = re.finditer(text_pattern, self.html_text)
         for match in text_matches:
             project_text = match.groups()[0]
-        img_pattern = r'<img.*src="(.*)".*/>'
+        img_pattern = r'<img.*?src="(.*?)".*?/>'
         text_matches = re.finditer(img_pattern, project_text)
         images = [match.groups()[0] for match in text_matches]
         return {'project_text': project_text, 'project_images': images}
@@ -164,7 +156,7 @@ class ProjectCommentsPageParser(Parser):
         return backer_info
 
     def __max_page(self):
-        page_pattern = r'<span class="page">\n.*<a href=".*">(\d+)</a>\n</span>'
+        page_pattern = r'<span class="page">\n.*?<a href=".*?">(\d+?)</a>\n</span>'
         page_matches = re.finditer(page_pattern, self.html_text)
         pages = [page.groups()[0] for page in page_matches]
         if len(pages) > 0:
@@ -193,11 +185,7 @@ class ProjectCommentsPageParser(Parser):
 class UserPageParser(Parser):
 
     def page_parser(self):
-        user_dict = {
-            "backed_projects":  self.__backed_projects_parser(),
-            "created_projects": self.__created_projects_parser(),
-        }
-        user_dict.update(self.__profile_parser())
+        user_dict = self.__profile_parser()
         return user_dict
 
     def __profile_parser(self):
@@ -209,76 +197,6 @@ class UserPageParser(Parser):
             "biography": self.__regexp_match_group(biography_pattern),
             "sns_links": self.__regexp_match_group(sns_pattern),
         }
-
-    def __backed_projects_parser(self):
-        _site_container = "div[@class='Site-container']"
-        _profile_container = 'div[@class="Profile-container"]'
-        _ul_tab_menu = "ul[@class='Tab-menu']"
-        _li_active = "li[@class='active']"
-        _tab_pan = 'div[@class="Tab-pan"]'
-        _tab_contents = 'div[@class="Tab-contents"]'
-        _tab_contents_active = 'div[@class="Tab-contents active"]'
-        _tab_contents__item = 'div[@class="Tab-contents__item"]'
-        _article = "article"
-        html = lxml.html.fromstring(self.html_text)
-        root = html.body.xpath('/*')[0]
-        try:
-            backed_projects = None
-            projects_profile = \
-                root.\
-                body.\
-                find(_site_container).\
-                find(_profile_container)
-            if projects_profile.find(_ul_tab_menu).find(_li_active).text == "支援したプロジェクト":
-                backed_projects = \
-                    projects_profile.\
-                    find(_tab_pan).\
-                    find(_tab_contents_active).\
-                    findall(_tab_contents__item)
-            else:
-                backed_projects = \
-                    projects_profile. \
-                    find(_tab_pan). \
-                    find(_tab_contents). \
-                    findall(_tab_contents__item)
-        except AttributeError:
-            return []
-        return [backed_project.find(_article).find("a").attrib["href"].split("/")[2] for backed_project in backed_projects]
-
-    def __created_projects_parser(self):
-        _site_container = "div[@class='Site-container']"
-        _profile_container = 'div[@class="Profile-container"]'
-        _ul_tab_menu = "ul[@class='Tab-menu']"
-        _li_active = "li[@class='active']"
-        _tab_pan = 'div[@class="Tab-pan"]'
-        _tab_contents = 'div[@class="Tab-contents"]'
-        _tab_contents_active = 'div[@class="Tab-contents active"]'
-        _tab_contents__item = 'div[@class="Tab-contents__item"]'
-        _article = "article"
-        html = lxml.html.fromstring(self.html_text)
-        root = html.body.xpath('/*')[0]
-        try:
-            created_projects = None
-            projects_profile = \
-                root. \
-                body. \
-                find(_site_container). \
-                find(_profile_container)
-            if projects_profile.find(_ul_tab_menu).find(_li_active).text == "公開したプロジェクト":
-                created_projects = \
-                    projects_profile. \
-                    find(_tab_pan). \
-                    find(_tab_contents_active). \
-                    findall(_tab_contents__item)
-            else:
-                created_projects = \
-                    projects_profile. \
-                    find(_tab_pan). \
-                    find(_tab_contents). \
-                    findall(_tab_contents__item)
-        except AttributeError:
-            return []
-        return [created_project.find(_article).find("a").attrib["href"].split("/")[2] for created_project in created_projects]
 
     def __regexp_match_group(self, pattern):
         matches = re.finditer(pattern, self.html_text)
