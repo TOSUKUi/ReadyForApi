@@ -1,7 +1,10 @@
 from .core import ReadyForObject, ReadyForConnection, FacebookGraphConnection
 from cached_property import cached_property
-from . import html_parser, user
+from . import user
+from .errors import ProjectCommentsPageBackersZeroException
+from .html_parser import ProjectCommentsPageParser, ProjectPageParser, FaceBookLikeParser
 from datetime import datetime, timedelta
+import itertools
 
 
 class Project(ReadyForObject):
@@ -37,10 +40,17 @@ class Project(ReadyForObject):
         elif self.project_url is not None:
             return self.project_url.split('/')[4]
 
+    # ----------------------------------------------
+    # related summary
+    # ----------------------------------------------
     @cached_property
     def summary(self):
+        """
+        this method return almost of property of project object
+        :return: 
+        """
         response = ReadyForConnection.call(objects_kind="projects", object_id=self.__project_identifier, param=None, method="GET")
-        return html_parser.ProjectPageParser(response.text).parse()
+        return ProjectPageParser(response.text).parse()
 
     @cached_property
     def name(self):
@@ -191,55 +201,6 @@ class Project(ReadyForObject):
     def author(self):
         return user.User(user_url=self.summary["user_profile_url"], name=self.summary["user"]["name"])
 
-    @cached_property
-    def __facebook_graph(self):
-        """
-        :return: Facebook_Like
-        """
-        domain = "https://readyfor.jp"
-        object_id = "{domain}/{object}/{name}".format(domain=domain, object="projects", name=self.name)
-        return html_parser.FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.10").text).parse()
-
-    @property
-    def facebook_reaction_count(self):
-        return self.__facebook_graph["engagement"]["reaction_count"]
-
-    @property
-    def facebook_share_count(self):
-        return self.__facebook_graph["engagement"]["share_count"]
-
-    @property
-    def facebook_comment_count(self):
-        return self.__facebook_graph["share"]["comment_count"]
-
-    @cached_property
-    def category(self):
-        for tag in self.tags:
-            if tag["tag_type"] == "category":
-                return tag["name"]
-
-    @cached_property
-    def comments_summary(self):
-        response = ReadyForConnection.call(objects_kind="project", object_id=self.__project_identifier, sub_object_kind="comments")
-        comments_summary = html_parser.ProjectCommentsPageParser(response.text).parse()
-        max_page = int(comments_summary["max_page"])
-        for page in range(2, max_page + 1):
-            try:
-                response = ReadyForConnection.call(objects_kind="project", object_id=self.__project_identifier,
-                                                   sub_object_kind="comments", page=page)
-                comments_summary["backers"].extend(html_parser.ProjectCommentsPageParser(response.text).parse()["backers"])
-            except:
-                continue
-        return [user.User(user_id=backer["backer_id"], backed_at=backer["backed_at"], name=backer["backer_name"]) for backer in comments_summary["backers"]]
-
-    @cached_property
-    def _backers(self):
-        return self.comments_summary
-
-    @property
-    def backers(self):
-        return self._backers
-
     @property
     def comments_count(self):
         return int(self.summary["comments_count"])
@@ -255,4 +216,65 @@ class Project(ReadyForObject):
     @property
     def num_project_images(self):
         return len(self.project_images)
+
+    @cached_property
+    def category(self):
+        for tag in self.tags:
+            if tag["tag_type"] == "category":
+                return tag["name"]
+
+    @cached_property
+    def comments_summary(self):
+        """
+        :return: Backers which back to this project
+        :rtype: user.User
+        """
+        comments_summary = {"backers": []}
+        for page in itertools.count(start=1, step=1):
+            try:
+                response = ReadyForConnection.call(objects_kind="projects", object_id=self.__project_identifier,
+                                                   sub_object_kind="comments", page=page)
+                comments_summary["backers"].extend(ProjectCommentsPageParser(response.text).parse()["backers"])
+            except ProjectCommentsPageBackersZeroException as e:
+                print(e)
+                break
+
+        return [
+            user.User(
+                user_id=backer["backer_id"],
+                backed_at=backer["backed_at"],
+                name=backer["backer_name"]
+            )
+            for backer in comments_summary["backers"]
+        ]
+
+    @cached_property
+    def backers(self):
+        return self.comments_summary
+
+    # ----------------------------------------
+    # related facebook
+    # ----------------------------------------
+    @cached_property
+    def __facebook_graph(self):
+        """
+        :return: Facebook_Like
+        """
+        domain = "https://readyfor.jp"
+        object_id = "{domain}/{object}/{name}".format(domain=domain, object="projects", name=self.name)
+        return FaceBookLikeParser(FacebookGraphConnection.call(object_id=object_id, v="v2.10").text).parse()
+
+    @property
+    def facebook_reaction_count(self):
+        return self.__facebook_graph["engagement"]["reaction_count"]
+
+    @property
+    def facebook_share_count(self):
+        return self.__facebook_graph["engagement"]["share_count"]
+
+    @property
+    def facebook_comment_count(self):
+        return self.__facebook_graph["share"]["comment_count"]
+
+
 

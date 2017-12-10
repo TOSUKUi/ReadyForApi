@@ -143,28 +143,22 @@ class ProjectPageParser(Parser):
 class ProjectCommentsPageParser(Parser):
 
     def page_parser(self):
-        temp = {"backers": self.__comment_getter(), "max_page": self.__max_page()}
+        temp = {"backers": self.__comment_getter()}
         return temp
 
     def __comment_getter(self):
-        comment_unit_pattern = r'<article style="border-bottom: 1px solid #ebebeb">(.+?)</article>'
+        comment_unit_pattern = r'<article style="border-bottom: 1px solid #ebebeb">((\s|\S)*?)</article>'
         comment_units = re.finditer(comment_unit_pattern, self.html_text)
         backer_info = []
         for comment_unit in comment_units:
-            date, name, uid = self.__extract(comment_unit.groups()[0])
+            date, name, uid = self.__extract(comment_unit.group(1))
             backer_info.append({"backer_name": name, "backer_id": uid, "backed_at": date})
+        if len(backer_info) == 0:
+            raise errors.ProjectCommentsPageBackersZeroException("このページには支援者がいません")
         return backer_info
 
-    def __max_page(self):
-        page_pattern = r'<span class="page">\n.*?<a href=".*?">(\d+?)</a>\n</span>'
-        page_matches = re.finditer(page_pattern, self.html_text)
-        pages = [page.groups()[0] for page in page_matches]
-        if len(pages) > 0:
-            return pages[-1]
-        else:
-            return 1
-
     def __extract(self, text):
+        print(text)
         date = re.search(r'pubdate="(.*?)"', text).group(1)
         link = re.search(r'<div class="Cheer-comment__name"><b>(.*?)</b>', text)
         names = re.search(r'<a href="/users/(\d+?)">(.*?)</a>', link.group())

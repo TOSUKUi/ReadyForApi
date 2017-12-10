@@ -51,11 +51,18 @@ class ProjectNotFoundError(APIProjectError):
     pass
 
 
+class ProjectCommentsPageBackersZeroException(APIProjectError):
+    """
+    An error cause when comments page backers count is 0 
+    """
+
+
 class AccessException(RequestException):
     """
     An error caused by page access error, like access denied by readyfor.
     """
     pass
+
 
 class PageAccessException(AccessException):
     """
