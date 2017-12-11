@@ -3,9 +3,6 @@ These classes are parser for scraping each pages.
 I recommend to naming follow the pattern of {object_name}{sub_object}PageParser
 for easy to use.
 """
-import lxml.html
-from lxml.html import tostring
-import html
 import json
 import re
 from . import errors

@@ -1,6 +1,5 @@
 # make this until 2017/5/30
 from . import *
-from . import project
 from .core import ReadyForObject, ReadyForConnection
 from cached_property import cached_property
 
