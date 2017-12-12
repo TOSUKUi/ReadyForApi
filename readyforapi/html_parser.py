@@ -174,7 +174,7 @@ class ProjectCommentsPageParser(Parser):
             uid = names.group(1)
             name = names.group(2)
         else:
-            uid = None
+            uid = "NoID"
             name = link.group(1)
 
         return date, name, uid
