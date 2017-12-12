@@ -106,7 +106,7 @@ class Project(ReadyForObject):
         新着情報の更新回数
         :return: 新着情報の更新回数
         """
-        return int(self.summary["news_update_count"])
+        return int(self.summary["news_update_count"]) if self.summary["news_update_count"] is not None else None
 
     @property
     def achievement_amount(self):
@@ -184,7 +184,7 @@ class Project(ReadyForObject):
 
     @property
     def favorite_count(self):
-        return self.summary["watchlists_count"]
+        return int(self.summary["watchlists_count"]) if self.summary["watchlists_count"] is not None else None
 
     @property
     def project_type(self):
@@ -203,7 +203,7 @@ class Project(ReadyForObject):
 
     @property
     def comments_count(self):
-        return int(self.summary["comments_count"])
+        return int(self.summary["comments_count"]) if self.summary["comments_count"] is not None else None
 
     @property
     def project_text(self):
