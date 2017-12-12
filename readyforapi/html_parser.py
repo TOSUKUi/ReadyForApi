@@ -155,7 +155,6 @@ class ProjectCommentsPageParser(Parser):
         return backer_info
 
     def __extract(self, text):
-        print(text)
         date = re.search(r'pubdate="(.*?)"', text).group(1)
         link = re.search(r'<div class="Cheer-comment__name"><b>(.*?)</b>', text)
         names = re.search(r'<a href="/users/(\d+?)">(.*?)</a>', link.group())
@@ -167,7 +166,7 @@ class ProjectCommentsPageParser(Parser):
             uid = names.group(1)
             name = names.group(2)
         else:
-            uid = 'NoID'
+            uid = None
             name = link.group(1)
 
         return date, name, uid

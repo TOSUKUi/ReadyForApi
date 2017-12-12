@@ -236,7 +236,6 @@ class Project(ReadyForObject):
                                                    sub_object_kind="comments", page=page)
                 comments_summary["backers"].extend(ProjectCommentsPageParser(response.text).parse()["backers"])
             except ProjectCommentsPageBackersZeroException as e:
-                print(e)
                 break
 
         return [
