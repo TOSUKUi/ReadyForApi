@@ -2,7 +2,7 @@
 from . import *
 from .core import ReadyForObject, ReadyForConnection
 from cached_property import cached_property
-
+from .errors import UserNoIDException
 
 class User(ReadyForObject):
 
@@ -22,6 +22,8 @@ class User(ReadyForObject):
     @cached_property
     def from_user_page(self):
         user_identifier = ""
+        if self.__id == "NoID":
+            raise UserNoIDException("User id が NoID のときはUserページの情報を取りに行かないで下さい")
         if self.__id is not None:
             user_identifier = self.__id
         elif self.user_url is not None:

@@ -64,6 +64,13 @@ class AccessException(RequestException):
     pass
 
 
+class UserNoIDException(APIException):
+    """
+    An error occur when user object is constructed  which user_id is NoID
+    """
+    pass
+
+
 class PageAccessException(AccessException):
     """
     An error caused by 4** error, for example, page not found.
