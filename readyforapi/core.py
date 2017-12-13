@@ -5,14 +5,18 @@ import time
 from inflector import Inflector
 
 
-
 def set_tokens(_facebook_token=None):
     FacebookGraphConnection.facebook_token = _facebook_token
+
+
+def set_readyfor_sleep_time(sleep_time=2.0):
+    ReadyForConnection.sleep_time = timedelta(sleep_time)
 
 
 class ReadyForConnection(object):
     queried_at = datetime.now()
     inflicter = Inflector()
+    sleep_time = timedelta(2.0)
 
     @classmethod
     def call(cls, objects_kind=None, object_id=None, sub_object_kind=None, method="GET", test=None, **kwargs):
@@ -28,8 +32,8 @@ class ReadyForConnection(object):
         """
         domain = "https://readyfor.jp"
         delta = datetime.now() - cls.queried_at
-        if delta < timedelta(seconds=2.0):
-            time_to_sleep = timedelta(seconds=2.0) - delta
+        if delta < cls.sleep_time:
+            time_to_sleep = cls.sleep_time - delta
             time.sleep(time_to_sleep.seconds + time_to_sleep.microseconds*10e-7)
         query = "{domain}/{objects_name}/{id}/{sub_object}".format(domain=domain, objects_name=objects_kind, id=object_id, sub_object=sub_object_kind)
         if sub_object_kind is None:
