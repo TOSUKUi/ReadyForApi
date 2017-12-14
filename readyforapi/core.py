@@ -10,13 +10,13 @@ def set_tokens(_facebook_token=None):
 
 
 def set_readyfor_sleep_time(sleep_time=2.0):
-    ReadyForConnection.sleep_time = timedelta(sleep_time)
+    ReadyForConnection.sleep_time = timedelta(seconds=sleep_time)
 
 
 class ReadyForConnection(object):
     queried_at = datetime.now()
     inflicter = Inflector()
-    sleep_time = timedelta(2.0)
+    sleep_time = timedelta(seconds=2.0)
 
     @classmethod
     def call(cls, objects_kind=None, object_id=None, sub_object_kind=None, method="GET", test=None, **kwargs):
