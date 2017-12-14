@@ -135,7 +135,7 @@ class ProjectPageParser(Parser):
 
     def __project_text_parser(self):
         project_text = ""
-        text_pattern = r'<section class="Project-outline Tab__content">((\s|\S)*)</aside>\n\s*</section>'
+        text_pattern = r'<section class="Project-outline Tab__content">((\s|\S)*?)</section>\n.*?<!-- /概要 -->'
         text_matches = re.finditer(text_pattern, self.html_text)
         for match in text_matches:
             project_text = match.groups()[0]
