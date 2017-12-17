@@ -11,6 +11,7 @@ from . import errors
 class Parser(object):
     """
     Parent class for PageParsers.
+    
     """
     def __init__(self, html_text):
         self.html_text = html_text
@@ -86,19 +87,19 @@ class ProjectPageParser(Parser):
         return json.loads(project_json)
 
     def __project_tab_parser(self):
-        project_tab_pattern = r'<nav class="tabnav-tabs">(.*)</nav></div></div></div><div class="Container">'
-        project_tab = re.search(project_tab_pattern, self.html_text).group(1)
-        self.project_tab = project_tab
+        project_tab_pattern = r'<nav class="tabnav-tabs">((\S|\s)*?)</nav></div></div></div><div class="Container">'
+        project_tab = re.search(project_tab_pattern, self.html_text)
+        self.project_tab = project_tab.group(1)
         tab = self.__project_tab_splitter()
         return {"news_update_count": tab["news_update_count"], "comments_count": tab["comments_count"]}
 
     def __project_tab_splitter(self):
-        project_tab_units = re.finditer(r'<a class="tabnav-tab(.*?)</a>', self.project_tab)
+        project_tab_units = re.finditer(r'<a class="tabnav-tab((\s|\S)*?)</a>', self.project_tab)
         nums = {"news_update_count": None, "comments_count": None}
 
         for project_tab_unit in project_tab_units:
             tab_unit = project_tab_unit.group(1)
-            tab_name = re.search(r'href="/projects/.*?"><span>(.*?)</span>', tab_unit)
+            tab_name = re.search(r'href="/projects/.*?"><span>((\s|\S)*?)</span>', tab_unit)
             if tab_name is None:
                 break
             num = re.search(r'<span class="Tab__menu-icon Icon-num">(\d*?)</span>', tab_unit)
@@ -107,7 +108,6 @@ class ProjectPageParser(Parser):
             elif tab_name.group(1) == "応援コメント":
                 nums["comments_count"] = num.group(1)
         return nums
-
 
     def __project_deadline_parser(self):
         regexp_time_suc = r'<div class="Project-visual__alert is-complete u-mt_15 u-mb_20"><span class="u-fs_18 u-font_b">プロジェクトが成立しました！<\/span><br \/><span class="u-fs_14">このプロジェクトは<br \/> (.+?)年(.+?)月(.+?)日\((.+?)\)(.+?):(.+?) に成立しました。<\/span><\/div>'
